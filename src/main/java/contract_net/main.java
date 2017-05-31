@@ -34,6 +34,7 @@ import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -136,7 +137,7 @@ public final class main {
       simulator.register(new Depot(roadModel.getRandomPosition(rng)));
     }
     for (int i = 0; i < NUM_TRUCKS; i++) {
-      simulator.register(new Truck(roadModel.getRandomPosition(rng),
+      simulator.register(new Truck(VehicleDTO, roadModel.getRandomPosition(rng),
         TRUCK_CAPACITY));
     }
     for (int i = 0; i < NUM_PARCELS; i++) {
@@ -184,9 +185,9 @@ public final class main {
       .with(GraphRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
         .withImageAssociation(
-          TaxiBase.class, "/graphics/perspective/tall-building-64.png")
+          Depot.class, "/graphics/perspective/tall-building-64.png")
         .withImageAssociation(
-          Tax.class, "/graphics/flat/taxi-32.png")
+          Truck.class, "/graphics/flat/taxi-32.png")
         .withImageAssociation(
           Customer.class, "/graphics/flat/person-red-32.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))

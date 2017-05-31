@@ -1,6 +1,7 @@
 package contract_net;
 
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -8,10 +9,14 @@ import com.google.common.base.Predicate;
 
 public class CNPMessage implements MessageContents {
 
-
+	private Message message;
 	private ContractNetMessageType type;
+	private MessageContents messageContent;
+	private Parcel parcel; // parcel to be picked up
 	
-	public CNPMessage(ContractNetMessageType type){
+	public CNPMessage(Message message, Parcel parcel, ContractNetMessageType type){
+		this.message = message;
+		this.parcel = parcel;
 		this.type = type;
 	}
 	

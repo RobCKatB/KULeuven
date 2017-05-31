@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
@@ -40,31 +42,26 @@ public class VehicleAgent implements CommUser {
 	      RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
 	      RoundingMode.CEILING);
 	  }
-	/**
-	 * calculate path length
-	 * @param path
-	 * @return
-	 */
-	public static double pathLength(Queue<Point> path)
-	{
-		double len = 0d;
-		Point last = null;
-		
-		for (Point p : path)
-		{
-			if (last == null)
-			{
-				last = p;
-				continue;
-			}
-			else
-			{
-				len += Math.sqrt(Math.pow(last.x-p.x, 2d) + Math.pow(last.y-p.y, 2d));
-				last = p;
-			}
+	  
+		public void calculateDistance(CNPMessage type.CALL_FOR_PROPOSALS){
+			roadModel.getShortestPathTo(currentPosition, parcelPosition);
+	
+		public void bidCFP(CNPMessage m, Bid bid){};
+		public void declineCFP(CNPMessage m, CNPMessage reaction){};
+		public void load(Parcel p){
+			if (ParcelState.AVAILABLE)
+				ParcelState.PICKING_UP;
+				pdpModel.pickup(this, p, time);
+		};
+		public void unload(Parcel p){
+			pdpModel.drop(vehicle, p, time);
+			ParcelState.DELIVERED;
+		};
+		public void move(Parcel p, Location l){
+			pdpModel.service(vehicle, p, time);
+			ParcelState.DELIVERING
 		}
 		
-		return len;
-	}
+
 
 }

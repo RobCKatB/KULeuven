@@ -8,8 +8,8 @@ public class Parcel {
 	private Truck assignedTruck;
 	private long deliveryTime;
 
-	public Parcel(Parcel packet, ParcelState state, Vehicle assignedTruck, long deliveryTime) {
-		this.parcel = packet;
+	public Parcel(Parcel parcel, ParcelState state, Vehicle assignedTruck, long deliveryTime) {
+		this.parcel = parcel;
 		this.state = state;
 		this.assignedTruck = assignedTruck;
 		this.deliveryTime = deliveryTime;
