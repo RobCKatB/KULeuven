@@ -13,7 +13,7 @@ public class CNPMessage implements MessageContents {
 
 	private Message message;
 	private ContractNetMessageType type;
-	private MessageContents messageContent;
+	private MessageContents messageContents;
 	private Parcel parcel; // parcel to be picked up
 	private Optional<CommDevice> commDevice;
 
