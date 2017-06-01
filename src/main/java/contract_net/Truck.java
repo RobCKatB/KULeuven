@@ -36,10 +36,14 @@ import com.google.common.base.Optional;
  */
 class Truck extends Vehicle {
 	private static final double SPEED = 1000d;
+	private static final double ENERGYCONSUMPTION = 1d; // Per unit mileage
+	private static final double ENERGYCAPACITY = 1000d;
+	
 	private Optional<Parcel> curr;
 	private int capacity;
 	private Point startPosition;
   
+	private double energy;
   
 	Truck(VehicleDTO pDto, Point startPosition, int capacity) {
 		super(VehicleDTO.builder()
@@ -84,6 +88,15 @@ class Truck extends Vehicle {
 	        }
 	      }
 	    }
+	}
+	
+	public Optional<Point> getPosition(){
+		final RoadModel rm = getRoadModel();
+		return Optional.of(rm.getPosition(this));
+	}
+	
+	public void charge(double amount){
+		this.energy = Math.max(this.energy+amount, this.ENERGYCAPACITY);
 	}
 
   }
