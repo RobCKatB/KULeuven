@@ -1,5 +1,7 @@
 package contract_net;
 
+import com.github.rinde.rinsim.core.model.comm.CommDevice;
+import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
@@ -13,18 +15,26 @@ public class CNPMessage implements MessageContents {
 	private ContractNetMessageType type;
 	private MessageContents messageContent;
 	private Parcel parcel; // parcel to be picked up
-	
+	private Optional<CommDevice> commDevice;
+
 	public CNPMessage(Message message, Parcel parcel, ContractNetMessageType type){
+		commDevice = Optional.absent();
 		this.message = message;
 		this.parcel = parcel;
 		this.type = type;
 	}
 	
+	
+	public void setContractNetMessageType(ContractNetMessageType type){
+		this.setType(type);
+	}
+	
+	
 	  /**
 	   * @return The {@link CommUser} that send this message.
 	   */
-	  public CommUser getSender() {
-	    return from();
+	  public CommUser getSender(Message m) {
+	    return message.getSender();
 	  }
 
 	  /**
@@ -52,7 +62,7 @@ public class CNPMessage implements MessageContents {
 	  }
 
 
-	public ContractNetMessageType getType() {
+	public ContractNetMessageType getType(ContractNetMessageType type) {
 		return type;
 	}
 

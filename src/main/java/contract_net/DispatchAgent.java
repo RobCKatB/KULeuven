@@ -30,6 +30,8 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	//agent is represented as a finite state machine
 	private int state = 0;
+	
+	// stillToBeAssignedParcels uit simulator halen want parcels zijn geregistreerd in de simulator
 	private List<Parcel> stillToBeAssignedParcels = new ArrayList<Parcel>();
 	private List<CNPMessage> messages = new ArrayList<CNPMessage>();
 	private List<Message> unreadMessages = new ArrayList<Message>();
@@ -86,11 +88,6 @@ public class DispatchAgent implements CommUser, TickListener {
         CommDevice device = this.commDevice.get();
         device.send(content, recipient);
     }
-
-		   
-	   public String getType() {
-	      return null;
-	   }
 
 	   
   

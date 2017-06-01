@@ -62,6 +62,24 @@ public class VehicleAgent implements CommUser {
 			ParcelState.DELIVERING
 		}
 		
+		
+		@Override
+		public void tick(long currentTime, long timeStep) {
+
+			handleIncomingMessages(mailbox.getMessages());
+
+			// Drive when possible
+			if (targetedPackage != null) {
+				if (!path.isEmpty()) {
+					truck.drive(path, timeStep);
+				} else {
+					if (targetedPackage.needsPickUp())
+						pickUpAndGo();
+					else
+						deliver();
+				}
+			}
+		}
 
 
 }
