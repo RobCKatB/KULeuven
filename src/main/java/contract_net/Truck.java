@@ -45,7 +45,7 @@ class Truck extends Vehicle {
   
 	private double energy;
   
-	Truck(VehicleDTO pDto, Point startPosition, int capacity) {
+	Truck(Point startPosition, int capacity) {
 		super(VehicleDTO.builder()
 			      .capacity(capacity)
 			      .startPosition(startPosition)

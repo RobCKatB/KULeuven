@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -126,20 +127,27 @@ public final class main {
     final Simulator simulator = Simulator.builder()
       .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
       .addModel(DefaultPDPModel.builder())
+      .addModel(CommModel.builder())
       .addModel(view)
       .build();
     final RandomGenerator rng = simulator.getRandomGenerator();
-
+    final PDPModel pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
+    final DefaultPDPModel defaultpdpmodel = simulator.getModelProvider().getModel(DefaultPDPModel.class);
     final RoadModel roadModel = simulator.getModelProvider().getModel(
       RoadModel.class);
+    final CommModel commModel = simulator.getModelProvider().getModel(CommModel.class);
     // add depots, truks and parcels to simulator
-    for (int i = 0; i < NUM_DEPOTS; i++) {
+    /*for (int i = 0; i < NUM_DEPOTS; i++) {
       simulator.register(new Depot(roadModel.getRandomPosition(rng)));
+    }*/
+    for (int i = 0; i < NUM_DEPOTS; i++) {
+    	simulator.register(new DispatchAgent(defaultpdpmodel));
     }
     for (int i = 0; i < NUM_TRUCKS; i++) {
-      simulator.register(new Truck(VehicleDTO, roadModel.getRandomPosition(rng),
+      simulator.register(new Truck(roadModel.getRandomPosition(rng),
         TRUCK_CAPACITY));
     }
+
     for (int i = 0; i < NUM_PARCELS; i++) {
       simulator.register(new Customer(
         Parcel.builder(roadModel.getRandomPosition(rng),
@@ -148,7 +156,7 @@ public final class main {
           .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
           .buildDTO()));
     }
-
+    
     simulator.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse time) {

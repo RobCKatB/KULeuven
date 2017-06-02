@@ -1,11 +1,13 @@
 package contract_net;
 
-// code inspired by com.github.rinde.rinsim.examples.comm/RandomBroadcastAgent.class
+// we are calling methods from com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.LoggerFactory;
@@ -13,15 +15,21 @@ import org.slf4j.LoggerFactory;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.core.model.pdp.Container;
+import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.google.common.base.Optional;
-
-import communication.TypedMessage;
 
 
 
@@ -31,14 +39,19 @@ public class DispatchAgent implements CommUser, TickListener {
 	//agent is represented as a finite state machine
 	private int state = 0;
 	
+	private DefaultPDPModel defaultpdpmodel;
 	// stillToBeAssignedParcels uit simulator halen want parcels zijn geregistreerd in de simulator
-	private List<Parcel> stillToBeAssignedParcels = new ArrayList<Parcel>();
+	private Collection<Parcel> toBeDispatchedParcels;
 	private List<CNPMessage> messages = new ArrayList<CNPMessage>();
 	private List<Message> unreadMessages = new ArrayList<Message>();
 	//list of potential VehicleAgent contractors
 	private List<VehicleAgent> potentialContractors = new ArrayList<VehicleAgent>();
+	
+	// deze twee moeten in veiling
 	private List<VehicleAgent> lostContractors = new ArrayList<VehicleAgent>();
 	private VehicleAgent winningContractor = null;
+	
+	
 	//used to record the number of received messages
 	//in this version, we impose the manager to wait till receiving answers from all the contractors
 	private int numberOfreceivedMessages = 0;
@@ -46,6 +59,7 @@ public class DispatchAgent implements CommUser, TickListener {
 	private int bestProposal = Integer.MAX_VALUE;
 	//record the agent responsible for the best proposal
 	private Optional<CommDevice> commDevice;
+	// settings of commDevice
 	  long lastReceiveTime;
 	  private final double range;
 	  private final double reliability;
@@ -55,27 +69,45 @@ public class DispatchAgent implements CommUser, TickListener {
 	  private final RandomGenerator rng;
 	  private CNPMessage cnpmessage;
 	
+		public DispatchAgent(DefaultPDPModel defaultpdpmodel) {
+			this.defaultpdpmodel = defaultpdpmodel;
+			toBeDispatchedParcels = new ArrayList<Parcel>();
+			commDevice = Optional.absent();
+		}
 	
-	public DispatchAgent(RandomGenerator r, List<VehicleAgent> potentialContractors, List<CNPMessage> messages, List<Parcel> stillToBeAssignedParcels, Optional<CommDevice> commDevice) {
+	public DispatchAgent(List<VehicleAgent> potentialContractors, List<CNPMessage> messages, List<Parcel> toBeDispatchedParcels) {
 		this.potentialContractors = potentialContractors;
 		this.messages = messages;
-		this.stillToBeAssignedParcels = stillToBeAssignedParcels;
-		this.commDevice = Optional.absent();
-		
-		rng = r;
-	    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
-	    reliability = rng.nextDouble();
+		this.toBeDispatchedParcels = toBeDispatchedParcels;
+		commDevice = Optional.absent();
 	}
 	
-	//// methodes zijn een samenraapsel van anderen, moet nog herschreven worden////
-
-
-	public void addParcel(Parcel p){
-		stillToBeAssignedParcels.add(p);
+	public Collection<Parcel> getANNOUNCEDParcels(){
+		return defaultpdpmodel.getParcels(ParcelState.ANNOUNCED);
 	}
+		
+	public Collection<Parcel> getAVAILABLEParcels(){
+		return defaultpdpmodel.getParcels(ParcelState.AVAILABLE);
+	}
+	
+	public Collection<Parcel> getToBeDispatchedParcels(){
+		toBeDispatchedParcels = getANNOUNCEDParcels();
+		toBeDispatchedParcels.addAll(getAVAILABLEParcels());
+		return toBeDispatchedParcels;
+	}
+	
+	public Set<Vehicle> getTrucks(){
+		return defaultpdpmodel.getVehicles();
+	}
+	
+	public VehicleState getTruckState(Truck truck){
+		return defaultpdpmodel.getVehicleState(truck);
+	}
+	
+
 
 	// if the dispatch agent wants to communicate with all other commUsers, i.e. all trucks	
-    public void sendBroadcastMessage(CommUser from, ArrayLis<CommUser> to, CNPMessage content) {   	
+    public void sendBroadcastMessage(CommUser from, ArrayList<CommUser> to, CNPMessage content) {   	
         if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for the phone app");}
         CommDevice device = this.commDevice.get();
         commDevice.broadcast(content, recipient);
@@ -101,6 +133,8 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	@Override
 	public void setCommDevice(CommDeviceBuilder builder) {
+		range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+	    reliability = rng.nextDouble();
 		//    if (range >= 0) {
 	    if (range >= 0) {
 	        builder.setMaxRange(range);
@@ -177,6 +211,8 @@ public class DispatchAgent implements CommUser, TickListener {
 	      .build());
 		
 	}
+	
+	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {};
 
 
 }

@@ -1,3 +1,5 @@
+// finalize auction stop criterion, followed by award and then end of auction
+
 package contract_net;
 
 import java.math.RoundingMode;
@@ -11,6 +13,7 @@ import javax.measure.unit.Unit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -20,7 +23,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 
-public class VehicleAgent implements CommUser {
+public class TruckAgent implements CommUser {
 	private static final Logger LOGGER = LoggerFactory
 			    .getLogger(RouteFollowingVehicle.class);
 	private Queue<Point> path;
@@ -79,6 +82,18 @@ public class VehicleAgent implements CommUser {
 						deliver();
 				}
 			}
+		}
+
+		@Override
+		public Optional<Point> getPosition() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void setCommDevice(CommDeviceBuilder builder) {
+			// TODO Auto-generated method stub
+			
 		}
 
 
