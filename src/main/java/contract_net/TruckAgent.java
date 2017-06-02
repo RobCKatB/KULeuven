@@ -10,13 +10,16 @@ import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.unit.Unit;
 
+import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
@@ -28,8 +31,34 @@ public class TruckAgent implements CommUser {
 			    .getLogger(RouteFollowingVehicle.class);
 	private Queue<Point> path;
 	private Optional<Point> initialPosition;
+	private Optional<CommDevice> commDevice;
+	private Optional<RoadModel> roadModel;
+	private Truck truck;
 	
+	// for CommUser
+	  private final double range;
+	  private final double reliability;
+	  static final double MIN_RANGE = .2;
+	  static final double MAX_RANGE = 1.5;
+	  static final long LONELINESS_THRESHOLD = 10 * 1000;
+	  private final RandomGenerator rng;
 
+	public TruckAgent(Point startPosition, int capacity){
+		truck = new Truck(startPosition, capacity);
+		commDevice = Optional.absent();
+		// settings for commDevice belonging to TruckAgent
+	    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+	    reliability = rng.nextDouble();
+	}
+		
+	public Truck getTruck() {
+		return truck;
+	}
+
+
+	public void setTruck(Truck truck) {
+		this.truck = truck;
+	}
 	  /**
 	   * Computes the travel time for this vehicle to any point.
 	   * @param p The point to calculate travel time to.
@@ -92,8 +121,12 @@ public class TruckAgent implements CommUser {
 
 		@Override
 		public void setCommDevice(CommDeviceBuilder builder) {
-			// TODO Auto-generated method stub
-			
+		    if (range >= 0) {
+		        builder.setMaxRange(range);
+		      }
+		      commDevice = Optional.of(builder
+		        .setReliability(reliability)
+		        .build());
 		}
 
 

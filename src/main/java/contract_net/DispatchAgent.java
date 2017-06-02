@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
+import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.pdp.Container;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -30,6 +31,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableBiMap;
 
 
 
@@ -45,12 +47,12 @@ public class DispatchAgent implements CommUser, TickListener {
 	private List<CNPMessage> messages = new ArrayList<CNPMessage>();
 	private List<Message> unreadMessages = new ArrayList<Message>();
 	//list of potential VehicleAgent contractors
-	private List<VehicleAgent> potentialContractors = new ArrayList<VehicleAgent>();
+	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
 	
 	// deze twee moeten in veiling
-	private List<VehicleAgent> lostContractors = new ArrayList<VehicleAgent>();
-	private VehicleAgent winningContractor = null;
-	
+	private List<TruckAgent> lostContractors = new ArrayList<TruckAgent>();
+	private TruckAgent winningContractor = null;
+	private ArrayList<CommUser> commUsers = new ArrayList<CommUser>(); // TruckAgent commUsers coupled to DispatchAgent
 	
 	//used to record the number of received messages
 	//in this version, we impose the manager to wait till receiving answers from all the contractors
@@ -70,18 +72,24 @@ public class DispatchAgent implements CommUser, TickListener {
 	  private CNPMessage cnpmessage;
 	
 		public DispatchAgent(DefaultPDPModel defaultpdpmodel) {
-			this.defaultpdpmodel = defaultpdpmodel;
+			this.defaultpdpmodel = defaultpdpmodel;// defined in the main
 			toBeDispatchedParcels = new ArrayList<Parcel>();
 			commDevice = Optional.absent();
+			// settings for commDevice belonging to DispatchAgent
+		    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+		    reliability = rng.nextDouble();
 		}
 	
+	/*
 	public DispatchAgent(List<VehicleAgent> potentialContractors, List<CNPMessage> messages, List<Parcel> toBeDispatchedParcels) {
 		this.potentialContractors = potentialContractors;
 		this.messages = messages;
 		this.toBeDispatchedParcels = toBeDispatchedParcels;
 		commDevice = Optional.absent();
 	}
+	*/
 	
+	// which parcels have to be dispatched to the different truckAgents?
 	public Collection<Parcel> getANNOUNCEDParcels(){
 		return defaultpdpmodel.getParcels(ParcelState.ANNOUNCED);
 	}
@@ -96,26 +104,46 @@ public class DispatchAgent implements CommUser, TickListener {
 		return toBeDispatchedParcels;
 	}
 	
-	public Set<Vehicle> getTrucks(){
+	// which truckAgents are available to perform a task?
+	public Set<Vehicle> getTruckAgents(){
 		return defaultpdpmodel.getVehicles();
 	}
 	
-	public VehicleState getTruckState(Truck truck){
-		return defaultpdpmodel.getVehicleState(truck);
+	public VehicleState getTruckAgentState(TruckAgent truckAgent){
+		Truck t = truckAgent.getTruck();
+		return defaultpdpmodel.getVehicleState(t);
 	}
 	
-
-
-	// if the dispatch agent wants to communicate with all other commUsers, i.e. all trucks	
-    public void sendBroadcastMessage(CommUser from, ArrayList<CommUser> to, CNPMessage content) {   	
-        if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for the phone app");}
-        CommDevice device = this.commDevice.get();
-        commDevice.broadcast(content, recipient);
-    }
+	// get the commUser/commDevice pairs that are coupled; commModel is defined in main
+	public ImmutableBiMap<CommUser, CommDevice> getCommUserDevice(CommModel commModel){
+		ImmutableBiMap<CommUser, CommDevice> commUsersDevices= commModel.getUsersAndDevices();
+		return commUsersDevices;
+	}
 	
-    
+	// the dispatchAgent has to communicate with commUsers from the class TruckAgent
+	// this method retrieves all the TruckAgent registered to the CommModel of our Simulator
+	public ArrayList<CommUser> getTruckAgentCommUsers(CommModel commModel){
+		ImmutableBiMap<CommUser, CommDevice> commUsersDevices=getCommUserDevice(commModel);
+		// loop through BiMap and collect all CommUsers belonging to the DispatchAgent commDevice in one ArrayList
+		CommUser commUser = null;
+		for (ImmutableBiMap.Entry<CommUser, CommDevice> entryCommDevice: commUsersDevices.entrySet()) {
+			commUser = commUsersDevices.inverse().get(entryCommDevice);
+		}
+		commUsers.add(commUser);
+	}
+
+	// if the dispatch agent wants to communicate with all other commUsers
+	// CNPMessage contains info about the Message and the ContractNetMessageType
+	public void sendBroadcastMessage(CNPMessage content){
+    	if (!this.commDevice.isPresent()) {
+        	throw new IllegalStateException("No commdevice activated for this dispatch agent");
+        	}
+    	CommDevice device = this.commDevice.get();
+		device.broadcast(content);
+	}
+
     // if the dispatch agent wants to communicate to only one other CommUser, i.e. one specific truck
-    public void sendDirectMessage(CNPMessage content, CommUser from, CommUser recipient) {
+    public void sendDirectMessage(CNPMessage content, CommUser recipient) {
         if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for the phone app");}
         CommDevice device = this.commDevice.get();
         device.send(content, recipient);
