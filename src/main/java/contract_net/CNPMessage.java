@@ -14,6 +14,7 @@ public class CNPMessage implements MessageContents {
 	private Parcel parcel; // parcel to be picked up by a Truck, auction initiated by DispatchAgent
 	private Optional<CommDevice> commDevice;
 
+	// or Auction instead of Parcel as parameter for constructor?
 	public CNPMessage(Parcel parcel, ContractNetMessageType type){
 		commDevice = Optional.absent(); // commDevice contains unreadMessages and outbox
 		this.parcel = parcel;
@@ -21,6 +22,11 @@ public class CNPMessage implements MessageContents {
 	}
 	
 	
+	public void setType(ContractNetMessageType type) {
+		this.type = type;
+	}
+
+
 	public Parcel getParcel() {
 		return parcel;
 	}

@@ -67,9 +67,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		*to the parcel pickup position and from the parcel pickup  position to the parcel destination position
 		*Therefore, edgelengths of segments in the graph (model for streets) are summed
 	   */
-		public double calculateDistance(Point currentTruckPosition, Parcel parcel){
-			List<Point> currentToPickup = roadModel.get().getShortestPathTo(currentTruckPosition, parcel.getPickupLocation());
-			List<Point> pickupToDelivery = roadModel.get().getShortestPathTo(parcel.getPickupLocation(), parcel.getDeliveryLocation());
+		public double calculateDistance(Optional<Point> currTruckPosition, Parcel parcel){
+			Point currentTruckPosition = currTruckPosition.get();
+			List<Point> currentToPickup = this.getRoadModel().getShortestPathTo(currentTruckPosition, parcel.getPickupLocation());
+			List<Point> pickupToDelivery = this.getRoadModel().getShortestPathTo(parcel.getPickupLocation(), parcel.getDeliveryLocation());
 			// make the sum of the vertices in the graph, from the first till the last point in the path
 			double currentToPickupLength = 0.0;
 			for(int i = 0; i < currentToPickup.size()-1; i++){
@@ -86,13 +87,12 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				pickupToDeliveryLength = currentToPickupLength + edgelength2;
 			}
 			return currentToPickupLength+pickupToDeliveryLength;
-
 		}
 		
 		  /**
 			* travel time = distance/speed
 		   */
-		public long calculateTravelTime(Point currentTruckPosition, Parcel parcel){
+		public long calculateTravelTime(Optional<Point> currentTruckPosition, Parcel parcel){
 			double shortestDistance = calculateDistance(currentTruckPosition, parcel);
 			long time = (long) (shortestDistance/SPEED);
 			return time;
@@ -241,5 +241,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		      }
 		      return Optional.absent();
 		}
+		
+
 	 
 }
