@@ -51,6 +51,7 @@ import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
+import com.google.common.base.Optional;
 
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
@@ -65,6 +66,7 @@ public final class main {
   private static final int NUM_DEPOTS = 1; // our depot is a smartphone app that acts as a dispatching center for the trucks and the parcels
   private static final int NUM_TRUCKS = 2;
   private static final int NUM_PARCELS = 3;
+  private static final int NUM_CHARINGSTATIONS = 2;
 
   // time in ms
   private static final long SERVICE_DURATION = 60000;
@@ -162,6 +164,11 @@ public final class main {
           .serviceDuration(SERVICE_DURATION)
           .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
           .buildDTO()));
+    }
+    for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
+    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), null); // TODO: range?
+    	simulator.register(chargingStation);
+    	commModel.register(chargingStation);
     }
     
     simulator.addTickListener(new TickListener() {

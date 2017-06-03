@@ -4,20 +4,22 @@ import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
-public class ChargingStation implements CommUser{
+public class ChargingStation implements CommUser, RoadUser{
 	
-	private final RoadModel roadModel;
-	private Optional<Point> position;
+	private RoadModel roadModel;
+	private Point startPosition;
+	private Optional<Double> range;
 	private Optional<CommDevice> commDevice;
 	private Optional<Truck> dockedVehicle;
-	private final double POWER = 10; // Energy per tick
+	private final double POWER = 10; // Energy per tick deliverable to trucks
 	
-	public ChargingStation(RoadModel roadModel, Point position){
-		this.roadModel = roadModel;
-		
+	public ChargingStation(Point startPosition,Double range){
+		this.startPosition = startPosition;
+		this.range = Optional.of(range);
 	}
 	
 	public void dock(Truck truck){
@@ -35,20 +37,30 @@ public class ChargingStation implements CommUser{
 		if(dockedVehicle.isPresent()){
 			dockedVehicle.get().charge(this.POWER);
 		}
+		// TODO: some logging here?
 	}
 
 	@Override
 	public Optional<Point> getPosition() {
-		return position;
+		return Optional.of(roadModel.getPosition(this));
 	}
 
 	@Override
 	public void setCommDevice(CommDeviceBuilder builder) {
+		if(this.range.isPresent()){
+			builder.setMaxRange(this.range.get());
+		}
 		commDevice = Optional.of(builder.build());
 	}
 
 	public boolean isBusy() {
 		return !dockedVehicle.isPresent();
+	}
+
+	@Override
+	public void initRoadUser(RoadModel model) {
+		this.roadModel = model;
+		this.roadModel.addObjectAt(this, startPosition);
 	}
 
 }

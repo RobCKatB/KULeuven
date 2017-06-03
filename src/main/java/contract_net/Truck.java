@@ -96,7 +96,7 @@ class Truck extends Vehicle {
 	}
 	
 	public void charge(double amount){
-		this.energy = Math.max(this.energy+amount, this.ENERGYCAPACITY);
+		this.energy = Math.max(this.energy+amount, ENERGYCAPACITY);
 	}
 
   }
