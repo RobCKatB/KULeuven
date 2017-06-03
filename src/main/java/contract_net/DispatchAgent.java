@@ -4,6 +4,7 @@ package contract_net;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import com.google.common.collect.ImmutableBiMap;
 
 
 
+
 public class DispatchAgent implements CommUser, TickListener {
 	
 
@@ -42,10 +44,10 @@ public class DispatchAgent implements CommUser, TickListener {
 	private int state = 0;
 	
 	private DefaultPDPModel defaultpdpmodel;
-	// stillToBeAssignedParcels uit simulator halen want parcels zijn geregistreerd in de simulator
+	// stillToBeAssignedParcelss uit simulator halen want Parcels zijn geregistreerd in de simulator
 	private Collection<Parcel> toBeDispatchedParcels;
 	private List<CNPMessage> messages = new ArrayList<CNPMessage>();
-	private List<Message> unreadMessages = new ArrayList<Message>();
+	private List<Message> unreadMessages = new ArrayList<CNPMessage>();
 	//list of potential VehicleAgent contractors
 	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
 	
@@ -81,7 +83,7 @@ public class DispatchAgent implements CommUser, TickListener {
 		}
 	
 	/*
-	public DispatchAgent(List<VehicleAgent> potentialContractors, List<CNPMessage> messages, List<Parcel> toBeDispatchedParcels) {
+	public DispatchAgent(List<VehicleAgent> potentialContractors, List<CNPMessage> messages, List<Parcel> toBeDispatchedParcel) {
 		this.potentialContractors = potentialContractors;
 		this.messages = messages;
 		this.toBeDispatchedParcels = toBeDispatchedParcels;
@@ -89,7 +91,7 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 	*/
 	
-	// which parcels have to be dispatched to the different truckAgents?
+	// which Parcels have to be dispatched to the different truckAgents?
 	public Collection<Parcel> getANNOUNCEDParcels(){
 		return defaultpdpmodel.getParcels(ParcelState.ANNOUNCED);
 	}
@@ -149,7 +151,31 @@ public class DispatchAgent implements CommUser, TickListener {
         device.send(content, recipient);
     }
 
+    public void sendCallForProposals(Parcel parcel){
+    	ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
+    	CNPMessage cnpMessage = new CNPMessage(parcel, type);
+    	sendBroadcastMessage(cnpMessage);
+    }
 	   
+    ////// moet in tick
+    public void dispatchParcels(){
+    	toBeDispatchedParcels = getAVAILABLEParcels();
+    	if(!toBeDispatchedParcels.isEmpty()){
+        	for(Parcel p: toBeDispatchedParcels){
+        		sendCallForProposals(p);
+        	}
+    	}
+    }
+    
+
+    
+    
+    public void receiveProposals(Parcel parcel){
+    	
+    }
+    public void selectBestBid(){
+    	
+    }
   
 	// CommUser methods implemented
 	@Override
@@ -172,7 +198,32 @@ public class DispatchAgent implements CommUser, TickListener {
 	        .build());
 	    }
 	
+    protected CNPAgent getWorkerWithBestProposal() {
+        double bestProposal = Double.MAX_VALUE;
+        CNPAgent bestAgent = null;
+        for (CNPAgent agent: this.proposals.keySet()) {
+            double proposal = this.proposals.get(agent);
+            if (proposal < bestProposal) {
+                bestProposal = proposal;
+                bestAgent = agent;
+            }
+        }
+        return bestAgent;
+    }
+    
+    public List<CNPMessage> getMessageContent(List<Message> messages) {
+        Iterator<Message> mIt = messages.iterator();
+        List<CNPMessage> contents = new ArrayList<>();
+        while (mIt.hasNext()) {
+            Message message = mIt.next();
+            CNPMessage content = (CNPMessage)message.getContents();
+            contents.add(content);
+        }
+        return contents;
+    }
 	
+    
+
 	// thicklistener methods implemented
 	@Override
 	  public void tick(TimeLapse timeLapse) {
@@ -187,21 +238,21 @@ public class DispatchAgent implements CommUser, TickListener {
 	    }
 	    */
 		
+		dispatchParcels();
+		
 	    if (commDevice.get().getUnreadCount() > 0) {
 	      lastReceiveTime = timeLapse.getStartTime();
 	      unreadMessages = commDevice.get().getUnreadMessages();
 	      
-	      
 			for (Message m : unreadMessages) {
-				
-				// here I want the enum from ContractNetMessageType
+				CNPMessage mess = (CNPMessage) m.getContents();
+					
 				lostContractors.clear();
 				
-				
-					switch (m.getType()) {
+					switch (mess.getType()) {
 
 						case CALL_FOR_PROPOSAL:
-							sendBroadcastMessage(m, potentialContractors)
+							sendCallForProposals(mess.getParcel());
 							break;
 						case ACCEPT_PROPOSAL:
 							// maak nog een auction klasse of methode

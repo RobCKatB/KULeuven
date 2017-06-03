@@ -54,6 +54,7 @@ class Truck extends Vehicle {
 		curr = Optional.absent();
 	}
 	
+	// parcel pickup and delivery
 	protected void tickImpl(TimeLapse time) {
 	    final RoadModel rm = getRoadModel();
 	    final PDPModel pm = getPDPModel();
