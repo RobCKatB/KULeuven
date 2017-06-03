@@ -10,7 +10,7 @@ import com.google.common.base.Optional;
 
 public class ChargingStation implements CommUser, RoadUser{
 	
-	private RoadModel roadModel;
+	private Optional<RoadModel> roadModel;
 	private Point startPosition;
 	private Optional<Double> range;
 	private Optional<CommDevice> commDevice;
@@ -18,13 +18,21 @@ public class ChargingStation implements CommUser, RoadUser{
 	private final double POWER = 10; // Energy per tick deliverable to trucks
 	
 	public ChargingStation(Point startPosition,Double range){
+		this.roadModel = Optional.absent();
 		this.startPosition = startPosition;
 		this.range = Optional.of(range);
+		this.commDevice = Optional.absent();
+		this.dockedVehicle = Optional.absent();
+	}
+	
+	private boolean checkTruckPosition(Truck truck){
+		return (truck.getPosition().isPresent()
+				&& truck.getPosition().get().equals(this.getPosition().get()));
+
 	}
 	
 	public void dock(Truck truck){
-		if(truck.getPosition().isPresent()
-				&& truck.getPosition().get().equals(this.getPosition().get())){
+		if(checkTruckPosition(truck)){
 			dockedVehicle = Optional.of(truck);
 		}
 	}
@@ -35,14 +43,19 @@ public class ChargingStation implements CommUser, RoadUser{
 	
 	public void chargeBattery(Truck truck){
 		if(dockedVehicle.isPresent()){
-			dockedVehicle.get().charge(this.POWER);
+			if(checkTruckPosition(truck)){
+				dockedVehicle.get().charge(this.POWER);
+			}else{
+				System.out.println("Truck drove away without undocking!");
+				unDock();
+			}
 		}
 		// TODO: some logging here?
 	}
 
 	@Override
 	public Optional<Point> getPosition() {
-		return Optional.of(roadModel.getPosition(this));
+		return Optional.of(roadModel.get().getPosition(this));
 	}
 
 	@Override
@@ -59,8 +72,8 @@ public class ChargingStation implements CommUser, RoadUser{
 
 	@Override
 	public void initRoadUser(RoadModel model) {
-		this.roadModel = model;
-		this.roadModel.addObjectAt(this, startPosition);
+		this.roadModel = Optional.of(model);
+		this.roadModel.get().addObjectAt(this, startPosition);
 	}
 
 }
