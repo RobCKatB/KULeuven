@@ -14,7 +14,7 @@ public class ChargingStation implements CommUser, RoadUser{
 	private Point startPosition;
 	private Optional<Double> range;
 	private Optional<CommDevice> commDevice;
-	private Optional<Truck> dockedVehicle;
+	private Optional<TruckAgent> dockedVehicle;
 	private final double POWER = 10; // Energy per tick deliverable to trucks
 	
 	public ChargingStation(Point startPosition,Double range){
@@ -25,13 +25,13 @@ public class ChargingStation implements CommUser, RoadUser{
 		this.dockedVehicle = Optional.absent();
 	}
 	
-	private boolean checkTruckPosition(Truck truck){
+	private boolean checkTruckPosition(TruckAgent truck){
 		return (truck.getPosition().isPresent()
 				&& truck.getPosition().get().equals(this.getPosition().get()));
 
 	}
 	
-	public void dock(Truck truck){
+	public void dock(TruckAgent truck){
 		if(checkTruckPosition(truck)){
 			dockedVehicle = Optional.of(truck);
 		}
@@ -41,7 +41,7 @@ public class ChargingStation implements CommUser, RoadUser{
 		dockedVehicle = Optional.absent();
 	}
 	
-	public void chargeBattery(Truck truck){
+	public void chargeBattery(TruckAgent truck){
 		if(dockedVehicle.isPresent()){
 			if(checkTruckPosition(truck)){
 				dockedVehicle.get().charge(this.POWER);
