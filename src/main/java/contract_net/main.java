@@ -152,7 +152,7 @@ public final class main {
     }
     for (int i = 0; i < NUM_TRUCKS; i++) {
     	TruckAgent truckAgent = new TruckAgent(roadModel.getRandomPosition(rng),
-    	        TRUCK_CAPACITY);
+    	        TRUCK_CAPACITY, rng);
       simulator.register(truckAgent);
       commModel.register(truckAgent);
     }
@@ -209,7 +209,7 @@ public final class main {
         .withImageAssociation(
           Depot.class, "/graphics/perspective/tall-building-64.png")
         .withImageAssociation(
-          Truck.class, "/graphics/flat/taxi-32.png")
+          TruckAgent.class, "/graphics/flat/taxi-32.png")
         .withImageAssociation(
           Customer.class, "/graphics/flat/person-red-32.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))
