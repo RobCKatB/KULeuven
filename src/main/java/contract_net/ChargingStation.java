@@ -1,5 +1,7 @@
 package contract_net;
 
+import org.apache.commons.math3.random.RandomGenerator;
+
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
@@ -12,17 +14,28 @@ public class ChargingStation implements CommUser, RoadUser{
 	
 	private Optional<RoadModel> roadModel;
 	private Point startPosition;
-	private Optional<Double> range;
 	private Optional<CommDevice> commDevice;
 	private Optional<TruckAgent> dockedVehicle;
 	private final double POWER = 10; // Energy per tick deliverable to trucks
-	
-	public ChargingStation(Point startPosition,Double range){
+	// for CommUser
+	private final double range;
+	private final double reliability;
+	static final double MIN_RANGE = .2;
+	static final double MAX_RANGE = 1.5;
+	static final long LONELINESS_THRESHOLD = 10 * 1000;
+	private final RandomGenerator rng;
+	  
+	public ChargingStation(Point startPosition, RandomGenerator rng){
+		this.rng = rng;
+		
 		this.roadModel = Optional.absent();
 		this.startPosition = startPosition;
-		this.range = Optional.of(range);
-		this.commDevice = Optional.absent();
 		this.dockedVehicle = Optional.absent();
+		
+		// settings for commDevice belonging to TruckAgent
+	    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+	    reliability = rng.nextDouble();
+		commDevice = Optional.absent();
 	}
 	
 	private boolean checkTruckPosition(TruckAgent truck){
@@ -60,10 +73,7 @@ public class ChargingStation implements CommUser, RoadUser{
 
 	@Override
 	public void setCommDevice(CommDeviceBuilder builder) {
-		if(this.range.isPresent()){
-			builder.setMaxRange(this.range.get());
-		}
-		commDevice = Optional.of(builder.build());
+		commDevice = Optional.of(builder.setMaxRange(this.range).build());
 	}
 
 	public boolean isBusy() {

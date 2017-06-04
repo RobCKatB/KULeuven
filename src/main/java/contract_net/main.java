@@ -164,7 +164,7 @@ public final class main {
           .buildDTO()));
     }
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
-    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), null); // TODO: range?
+    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), rng);
     	simulator.register(chargingStation);
     	commModel.register(chargingStation);
     }
@@ -207,7 +207,7 @@ public final class main {
         .withImageAssociation(
           Depot.class, "/graphics/perspective/tall-building-64.png")
         .withImageAssociation(
-          Truck.class, "/graphics/flat/taxi-32.png")
+          TruckAgent.class, "/graphics/flat/taxi-32.png")
         .withImageAssociation(
           Customer.class, "/graphics/flat/person-red-32.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))
