@@ -1,5 +1,5 @@
 package contract_net;
-
+//
 import java.util.HashMap;
 
 

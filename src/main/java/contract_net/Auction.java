@@ -1,5 +1,5 @@
 package contract_net;
-
+//KB
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.widgets.DateTime;

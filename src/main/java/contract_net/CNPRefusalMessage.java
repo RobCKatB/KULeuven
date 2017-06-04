@@ -1,5 +1,5 @@
 package contract_net;
-
+//
 public class CNPRefusalMessage extends CNPMessage {
 
 	private Auction auction;

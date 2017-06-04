@@ -1,5 +1,5 @@
 // finalize auction stop criterion, followed by award and then end of auction
-
+//
 package contract_net;
 
 import java.util.ArrayList;
