@@ -97,6 +97,12 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			long time = (long) (shortestDistance/SPEED);
 			return time;
 		}
+		
+		public long calculateTravelEnergy(Optional<Point> currentTruckPosition, Parcel parcel){
+			double shortestDistance = calculateDistance(currentTruckPosition, parcel);
+			long energy = (long) (shortestDistance*ENERGYCONSUMPTION);
+			return energy;
+		}
 			
 /*
 		public void bidCFP(CNPMessage m, Bid bid){};
