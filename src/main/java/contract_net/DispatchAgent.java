@@ -31,24 +31,20 @@ import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableBiMap;
-
-
+import com.google.common.collect.ImmutableList;
 
 
 public class DispatchAgent implements CommUser, TickListener {
 
 
-	//agent is represented as a finite state machine
-	private int state = 0;
 
 	private DefaultPDPModel defaultpdpmodel;
 	// stillToBeAssignedParcelss uit simulator halen want Parcels zijn geregistreerd in de simulator
 	private Collection<Parcel> toBeDispatchedParcels;
-	private List<CNPMessage> messages = new ArrayList<CNPMessage>();
+	private List<CNPMessage> CNPmessages = new ArrayList<CNPMessage>();
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
 	//list of potential VehicleAgent contractors
 	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
-
 	// deze twee moeten in veiling
 	private List<TruckAgent> lostContractors = new ArrayList<TruckAgent>();
 	private TruckAgent winningContractor = null;
@@ -62,20 +58,22 @@ public class DispatchAgent implements CommUser, TickListener {
 	//record the agent responsible for the best proposal
 	private Optional<CommDevice> commDevice;
 	// settings of commDevice
-	long lastReceiveTime;
+	private long lastReceiveTime;
 	private final double range;
 	private final double reliability;
 	static final double MIN_RANGE = .2;
 	static final double MAX_RANGE = 1.5;
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
+	private static final long AUCTION_DURATION = 1000;
 	private final RandomGenerator rng;
 	private CNPMessage cnpmessage;
 
-	public DispatchAgent(DefaultPDPModel defaultpdpmodel) {
+	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RandomGenerator rng) {
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
 		toBeDispatchedParcels = new ArrayList<Parcel>();
 		commDevice = Optional.absent();
 		// settings for commDevice belonging to DispatchAgent
+		this.rng = rng;
 		range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
 		reliability = rng.nextDouble();
 	}
@@ -120,7 +118,7 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 
 	// the dispatchAgent has to communicate with commUsers from the class TruckAgent
-	// this method retrieves all the TruckAgent registered to the CommModel of our Simulator
+	// this method retrieves all the TruckAgent registered to this CommModel of our Simulator
 	public ArrayList<CommUser> getTruckAgentCommUsers(CommModel commModel){
 		ImmutableBiMap<CommUser, CommDevice> commUsersDevices=getCommUserDevice(commModel);
 		// loop through BiMap and collect all CommUsers belonging to the DispatchAgent commDevice in one ArrayList
@@ -143,59 +141,63 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	// if the dispatch agent wants to communicate to only one other CommUser, i.e. one specific truck
 	public void sendDirectMessage(CNPMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for the phone app");}
+		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for dispatch agent");}
 		CommDevice device = this.commDevice.get();
 		device.send(content, recipient);
 	}
 
-	public void sendCallForProposals(Parcel parcel){
+	public void sendCallForProposals(Parcel parcel, long currentTime, long AUCTION_DURATION){
 		ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
-		CNPMessage cnpMessage = new CNPMessage(parcel, type);
+		Auction auction = new Auction(this, parcel, currentTime + AUCTION_DURATION, false);
+		CNPMessage cnpMessage = new CNPMessage(auction, type);
 		sendBroadcastMessage(cnpMessage);
 	}
 
-	////// moet in tick
-	public void dispatchParcels(){
+	public void dispatchParcels(long currentTime, long AUCTION_DURATION){
 		toBeDispatchedParcels = getAVAILABLEParcels();
 		if(!toBeDispatchedParcels.isEmpty()){
 			for(Parcel p: toBeDispatchedParcels){
-				sendCallForProposals(p);
+				sendCallForProposals(p, currentTime, AUCTION_DURATION);
 			}
 		}
 	}
 
-
-
-
-	public void receiveProposals(Parcel parcel){
-
-	}
-	public void selectBestBid(){
+	public void selectBestProposal(List<Proposal> proposals){
+		for(Proposal p: proposals){
+			p.setTimeCostBid();
+		};
 
 	}
 
-	// CommUser methods implemented
-	@Override
-	// not needed for us since the dispatch agent is a phone app, so it has not one position at a certain physical depot
-	public Optional<Point> getPosition() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	@Override
-	public void setCommDevice(CommDeviceBuilder builder) {
-		range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
-		reliability = rng.nextDouble();
-		//    if (range >= 0) {
-		if (range >= 0) {
-			builder.setMaxRange(range);
+	/// uit oude Rinsim
+/*
+	private AcceptProposal chooseBestProposal(Collection<Proposal> proposals, long currentTime) {
+		AcceptProposal accepted = null;
+		Iterator<Proposal> it = proposals.iterator();
+		Proposal best = it.next();
+		Proposal second = null;
+		if (it.hasNext()) {
+			second = it.next();
+			if (second.getDeliveryTime() < best.getDeliveryTime()) {
+				Proposal p = best;
+				best = second;
+				second = p;
+			}
+			while (it.hasNext()) {
+				Proposal p = it.next();
+				if (p.getDeliveryTime() < best.getDeliveryTime()) {
+					second = best;
+					best = p;
+				} else if (p.getDeliveryTime() < second.getDeliveryTime()) {
+					second = p;
+				}
+			}
 		}
-		commDevice = Optional.of(builder
-				.setReliability(reliability)
-				.build());
-	}
-
-	protected CNPAgent getWorkerWithBestProposal() {
+	
+		
+			// uit Goosens
+		protected CNPAgent getWorkerWithBestProposal() {
 		double bestProposal = Double.MAX_VALUE;
 		CNPAgent bestAgent = null;
 		for (CNPAgent agent: this.proposals.keySet()) {
@@ -207,12 +209,23 @@ public class DispatchAgent implements CommUser, TickListener {
 		}
 		return bestAgent;
 	}
+*/
+    public List<CNPMessage> readMessages() {
+        CommDevice device = this.commDevice.get();
+        List<CNPMessage> contents = new ArrayList<CNPMessage>();
+        if (device.getUnreadCount() != 0) {
+            ImmutableList<Message> messages = device.getUnreadMessages();
+            contents = getMessageContent(messages);
+        }
+        return contents;
+    }
 
-	public List<CNPMessage> getMessageContent(List<Message> messages) {
-		Iterator<Message> mIt = messages.iterator();
+    
+	public List<CNPMessage> getMessageContent(ImmutableList<Message> messages) {
+		Iterator<Message> it = messages.iterator();
 		List<CNPMessage> contents = new ArrayList<>();
-		while (mIt.hasNext()) {
-			Message message = mIt.next();
+		while (it.hasNext()) {
+			Message message = it.next();
 			CNPMessage content = (CNPMessage)message.getContents();
 			contents.add(content);
 		}
@@ -220,12 +233,10 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 
 
-
 	// thicklistener methods implemented
 	@Override
 	public void tick(TimeLapse timeLapse) {
-
-		/* this part left away since our dispatch agent is a mobile app, so without fixed location
+		/*
 	    if (!destination.isPresent()) {
 	      destination = Optional.of(roadModel.get().getRandomPosition(rng));
 	    }
@@ -233,33 +244,46 @@ public class DispatchAgent implements CommUser, TickListener {
 	    if (roadModel.get().getPosition(this).equals(destination.get())) {
 	      destination = Optional.absent();
 	    }
-		 */
+	    
+	    */
+		
+		long currentTime = timeLapse.getTime();
+	    dispatchParcels(currentTime, AUCTION_DURATION);
+	
 
-		dispatchParcels();
 
 		if (commDevice.get().getUnreadCount() > 0) {
 			lastReceiveTime = timeLapse.getStartTime();
-			unreadMessages = commDevice.get().getUnreadMessages();
+			unreadMessages = readMessages();
 
-			for (Message m : unreadMessages) {
-				CNPMessage mess = (CNPMessage) m.getContents();
-
+			for (CNPMessage m : unreadMessages) {
 				lostContractors.clear();
 
-				switch (mess.getType()) {
+				switch (m.getType()) {
 
-				case CALL_FOR_PROPOSAL:
-					sendCallForProposals(mess.getParcel());
+				case REFUSE:
+					/// send REJECT_PROPOSAL message to TruckAgents who lost the auction
 					break;
-				case ACCEPT_PROPOSAL:
-					// maak nog een auction klasse of methode
+				case PROPOSE:
+					/// send ACCEPT_PROPOSAL message to TruckAgent who won this auction
+					/// add winning truckagent to ArrayList from class AuctionWinnerOverview
+					/// how to find the TruckAgent who has sent this message
+					/*
 					winningContractor = m.getWinner;
 					if(winningContractor != null)
-						sendDirectMessage(m, winningContractor);
+						sendDirectMessage(m, winningContractor);*/
 					break;
-				case REJECT_PROPOSAL:
-					lostContractors = potentialContractors.remove(winningContractor);
-					sendBroadcastMessage(message.LOST, lostContractors);
+				case FAILURE:
+					// do nothing or in more advanced form of the program: rebroadcast call for proposal
+					break;
+				case INFORM_DONE:
+					/// truck tells that parcel is delivered
+					/////change the boolean delivered() of the corresponding parcel to true
+					/// store in AuctionResult
+					break;
+				case INFORM_RESULT:
+					/// truck tells that parcel is deliverd and gives information about the actual travel time, travel distance, ...
+					/// store this information in AuctionResult
 					break;
 				default:
 					break;
@@ -267,15 +291,31 @@ public class DispatchAgent implements CommUser, TickListener {
 			}
 
 		}
-		commDevice.get().broadcast(Messages.NICE_TO_MEET_YOU);
 	} else if (commDevice.get().getReceivedCount() == 0) {
-		//do nothign;
-	} else if (timeLapse.getStartTime()
-			- lastReceiveTime > LONELINESS_THRESHOLD) {
+		//do nothing;
+	} else if (timeLapse.getStartTime()	- lastReceiveTime > LONELINESS_THRESHOLD) {
 		device.get().rebroadcast(Message);
 	}
 }
 
+// CommUser methods implemented
+@Override
+// not needed for us since the dispatch agent is a phone app, so it has not one position at a certain physical depot
+public Optional<Point> getPosition() {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public void setCommDevice(CommDeviceBuilder builder) {
+	//    if (range >= 0) {
+	if (range >= 0) {
+		builder.setMaxRange(range);
+	}
+	commDevice = Optional.of(builder
+			.setReliability(reliability)
+			.build());
+}
 
 @Override
 public void afterTick(TimeLapse timeLapse) {
@@ -288,7 +328,11 @@ device = Optional.of(builder
 
 }
 
-public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {};
+public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
+	//// wat moet hier???
+}
+
+
 
 
 }

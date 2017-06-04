@@ -11,14 +11,16 @@ import com.google.common.base.Predicate;
 public class CNPMessage implements MessageContents {
 
 	private ContractNetMessageType type;
-	private Parcel parcel; // parcel to be picked up by a Truck, auction initiated by DispatchAgent
+	private Auction auction; // parcel to be picked up by a Truck, auction initiated by DispatchAgent
 	private Optional<CommDevice> commDevice;
 
 	// or Auction instead of Parcel as parameter for constructor?
-	public CNPMessage(Parcel parcel, ContractNetMessageType type){
+	public CNPMessage(Auction auction, ContractNetMessageType type){
 		commDevice = Optional.absent(); // commDevice contains unreadMessages and outbox
-		this.parcel = parcel;
+		this.auction = auction;
 		this.type = type;
+		this.sender = sender;
+		this.receiver = receiver;
 	}
 	
 	
@@ -27,13 +29,13 @@ public class CNPMessage implements MessageContents {
 	}
 
 
-	public Parcel getParcel() {
-		return parcel;
+	public Auction getAuction() {
+		return auction;
 	}
 
 
-	public void setParcel(Parcel parcel) {
-		this.parcel = parcel;
+	public void setAuction(Auction auction) {
+		this.auction = auction;
 	}
 
 
@@ -46,7 +48,6 @@ public class CNPMessage implements MessageContents {
 		this.setType(type);
 	}
 	
-
 	  /**
 	   * @return The {@link MessageContents} that this message contains.
 	   */
