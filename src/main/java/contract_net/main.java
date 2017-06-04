@@ -166,7 +166,7 @@ public final class main {
           .buildDTO()));
     }
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
-    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), null); // TODO: range?
+    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), rng);
     	simulator.register(chargingStation);
     	commModel.register(chargingStation);
     }
