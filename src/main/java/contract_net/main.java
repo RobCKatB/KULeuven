@@ -63,7 +63,7 @@ import com.google.common.base.Optional;
  */
 public final class main {
 
-  private static final int NUM_DEPOTS = 1; // our depot is a smartphone app that acts as a dispatching center for the trucks and the parcels
+  private static final int NUM_DEPOTS = 2; // our depot is a smartphone app that acts as a dispatching center for the trucks and the parcels
   private static final int NUM_TRUCKS = 2;
   private static final int NUM_PARCELS = 3;
   private static final int NUM_CHARINGSTATIONS = 2;
@@ -141,15 +141,13 @@ public final class main {
     final CommModel commModel = simulator.getModelProvider().getModel(CommModel.class);
     
     // add depots, truks and parcels to simulator
-    /*for (int i = 0; i < NUM_DEPOTS; i++) {
-      simulator.register(new Depot(roadModel.getRandomPosition(rng)));
-    }*/
-    
     for (int i = 0; i < NUM_DEPOTS; i++) {
     	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel);
     	simulator.register(dispatchAgent);
     	commModel.register(dispatchAgent);// this registration links commUser dispatchAgent with the commDevice for the dispatchAgent
     }
+    
+
     for (int i = 0; i < NUM_TRUCKS; i++) {
     	TruckAgent truckAgent = new TruckAgent(roadModel.getRandomPosition(rng),
     	        TRUCK_CAPACITY, rng);

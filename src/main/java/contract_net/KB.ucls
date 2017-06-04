@@ -3,177 +3,262 @@
   associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
   <enumeration id="1" language="java" name="contract_net.ContractNetMessageType" project="_RobKatMAS" 
     file="/_RobKatMAS/src/main/java/contract_net/ContractNetMessageType.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="232" width="328" x="1015" y="970"/>    
+    <position height="-1" width="-1" x="1832" y="1093"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </enumeration>  
-  <class id="2" language="java" name="contract_net.ParcelAgent" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/ParcelAgent.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="285" y="1071"/>    
+  <class id="2" language="java" name="contract_net.TruckAgent" project="_RobKatMAS" 
+    file="/_RobKatMAS/src/main/java/contract_net/TruckAgent.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="527" y="347"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="3" language="java" name="contract_net.main" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/main.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="430" width="366" x="101" y="102"/>    
+  <class id="3" language="java" name="contract_net.ChargingStation" project="_RobKatMAS" 
+    file="/_RobKatMAS/src/main/java/contract_net/ChargingStation.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="154" y="185"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="4" language="java" name="contract_net.Mess" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/Mess.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="160" width="227" x="507" y="102"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="5" language="java" name="contract_net.Statistics" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/Statistics.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="376" width="456" x="774" y="102"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="6" language="java" name="contract_net.CNPMessage" project="_RobKatMAS" 
+  <class id="4" language="java" name="contract_net.CNPMessage" project="_RobKatMAS" 
     file="/_RobKatMAS/src/main/java/contract_net/CNPMessage.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="844" y="689"/>    
+    <position height="-1" width="-1" x="1411" y="991"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="7" language="java" name="contract_net.VehicleAgent" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/VehicleAgent.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="1547" y="846"/>    
+  <class id="5" language="java" name="contract_net.Auction" project="_RobKatMAS" 
+    file="/_RobKatMAS/src/main/java/contract_net/Auction.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="232" y="1172"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="8" language="java" name="contract_net.Truck" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/Truck.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="-1" width="-1" x="571" y="1315"/>    
+  <class id="6" language="java" name="contract_net.AuctionResult" project="_RobKatMAS" 
+    file="/_RobKatMAS/src/main/java/contract_net/AuctionResult.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="601" y="1409"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="9" language="java" name="contract_net.Parcel" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/Parcel.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="214" width="254" x="721" y="970"/>    
+  <class id="7" language="java" name="contract_net.AuctionWinnerOverview" project="_RobKatMAS" 
+    file="/_RobKatMAS/src/main/java/contract_net/AuctionWinnerOverview.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="121" y="607"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="10" language="java" name="contract_net.main.Customer" project="_RobKatMAS" 
-    file="/_RobKatMAS/src/main/java/contract_net/main.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="106" width="265" x="101" y="608"/>    
+  <class id="8" language="java" name="contract_net.Proposal" project="_RobKatMAS" 
+    file="/_RobKatMAS/src/main/java/contract_net/Proposal.java" binary="false" corner="BOTTOM_RIGHT">    
+    <position height="-1" width="-1" x="239" y="892"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="11" language="java" name="contract_net.DispatchAgent" project="_RobKatMAS" 
+  <class id="9" language="java" name="contract_net.DispatchAgent" project="_RobKatMAS" 
     file="/_RobKatMAS/src/main/java/contract_net/DispatchAgent.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="466" width="683" x="1270" y="102"/>    
+    <position height="-1" width="-1" x="1197" y="339"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <association id="12">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="13" name="winningContractor"/>      
-      <multiplicity id="14" minimum="0" maximum="1"/>    
+  <association id="10">    
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="11" name="cnpmessage"/>      
+      <multiplicity id="12" minimum="0" maximum="1"/>    
     </end>    
-    <end type="TARGET" refId="7" navigable="true"/>    
+    <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="15">    
-    <end type="SOURCE" refId="2" navigable="false">      
-      <attribute id="16" name="PDPTruck"/>      
-      <multiplicity id="17" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="8" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="18">    
+  <association id="13">    
+    <bendpoint x="1149" y="739"/>    
+    <bendpoint x="1149" y="957"/>    
     <end type="SOURCE" refId="6" navigable="false">      
-      <attribute id="19" name="type"/>      
-      <multiplicity id="20" minimum="0" maximum="1"/>    
+      <attribute id="14" name="inform_result"/>      
+      <multiplicity id="15" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="1" navigable="true"/>    
+    <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <nesting id="21">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="10"/>  
-  </nesting>  
-  <association id="22">    
-    <end type="SOURCE" refId="6" navigable="false">      
-      <attribute id="23" name="parcel"/>      
-      <multiplicity id="24" minimum="0" maximum="1"/>    
+  <association id="16">    
+    <end type="SOURCE" refId="5" navigable="false">      
+      <attribute id="17" name="dispatchAgent"/>      
+      <multiplicity id="18" minimum="0" maximum="1"/>    
     </end>    
     <end type="TARGET" refId="9" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
+  <association id="19">    
+    <bendpoint x="1107" y="739"/>    
+    <bendpoint x="1107" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="20" name="inform_done"/>      
+      <multiplicity id="21" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="22">    
+    <bendpoint x="494" y="739"/>    
+    <bendpoint x="494" y="957"/>    
+    <end type="SOURCE" refId="8" navigable="false">      
+      <attribute id="23" name="bidder"/>      
+      <multiplicity id="24" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
   <association id="25">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="26" name="messages"/>      
+    <bendpoint x="1170" y="739"/>    
+    <bendpoint x="1170" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="26" name="validProposals"/>      
       <multiplicity id="27" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="6" navigable="true"/>    
+    <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <association id="28">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="29" name="cnpmessage"/>      
-      <multiplicity id="30" minimum="0" maximum="1"/>    
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="29" name="lostContractors"/>      
+      <multiplicity id="30" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="6" navigable="true"/>    
+    <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <association id="31">    
-    <end type="SOURCE" refId="9" navigable="false">      
-      <attribute id="32" name="assignedTruck"/>      
-      <multiplicity id="33" minimum="0" maximum="1"/>    
+    <end type="SOURCE" refId="7" navigable="false">      
+      <attribute id="32" name="auctionWinnerMap"/>      
+      <multiplicity id="33" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="8" navigable="true"/>    
+    <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <association id="34">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="35" name="potentialContractors"/>      
+    <bendpoint x="1191" y="739"/>    
+    <bendpoint x="1191" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="35" name="refusals"/>      
       <multiplicity id="36" minimum="0" maximum="2147483647"/>    
     </end>    
-    <end type="TARGET" refId="7" navigable="true"/>    
+    <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <association id="37">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="38" name="lostContractors"/>      
-      <multiplicity id="39" minimum="0" maximum="2147483647"/>    
+    <end type="SOURCE" refId="4" navigable="false">      
+      <attribute id="38" name="type"/>      
+      <multiplicity id="39" minimum="0" maximum="1"/>    
     </end>    
-    <end type="TARGET" refId="7" navigable="true"/>    
+    <end type="TARGET" refId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="40">    
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="41" name="winningContractor"/>      
+      <multiplicity id="42" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="43">    
+    <bendpoint x="515" y="739"/>    
+    <bendpoint x="515" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="44" name="winner"/>      
+      <multiplicity id="45" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="46">    
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="47" name="potentialContractors"/>      
+      <multiplicity id="48" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="49">    
+    <bendpoint x="861" y="739"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="50" name="dispatchAgent"/>      
+      <multiplicity id="51" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="9" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="52">    
+    <end type="SOURCE" refId="8" navigable="false">      
+      <attribute id="53" name="auction"/>      
+      <multiplicity id="54" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="55">    
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="56" name="unreadMessages"/>      
+      <multiplicity id="57" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="58">    
+    <bendpoint x="536" y="739"/>    
+    <bendpoint x="536" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="59" name="truckAgent"/>      
+      <multiplicity id="60" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="2" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="61">    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="62" name="auction"/>      
+      <multiplicity id="63" minimum="0" maximum="1"/>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="64">    
+    <bendpoint x="1128" y="739"/>    
+    <bendpoint x="1128" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="65" name="failures"/>      
+      <multiplicity id="66" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="67">    
+    <bendpoint x="1086" y="739"/>    
+    <bendpoint x="1086" y="957"/>    
+    <end type="SOURCE" refId="6" navigable="false">      
+      <attribute id="68" name="invalidProposals"/>      
+      <multiplicity id="69" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
