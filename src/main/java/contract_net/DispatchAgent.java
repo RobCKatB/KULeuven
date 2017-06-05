@@ -113,6 +113,7 @@ public class DispatchAgent implements CommUser, TickListener {
 		return defaultpdpmodel.getVehicleState(truckAgent);
 	}
 
+	/*
 	// get the commUser/commDevice pairs that are coupled; commModel is defined in main
 	public ImmutableBiMap<CommUser, CommDevice> getCommUserDevice(CommModel commModel){
 		ImmutableBiMap<CommUser, CommDevice> commUsersDevices= commModel.getUsersAndDevices();
@@ -130,6 +131,7 @@ public class DispatchAgent implements CommUser, TickListener {
 		}
 		commUsers.add(commUser);
 	}
+	*/
 
 	// if the dispatch agent wants to communicate with all other commUsers
 	// CNPMessage contains info about the Message and the ContractNetMessageType
@@ -155,6 +157,7 @@ public class DispatchAgent implements CommUser, TickListener {
 		sendBroadcastMessage(cnpMessage);
 	}
 
+	// TODO AUCTION_DURATION
 	public void dispatchParcels(long currentTime, long AUCTION_DURATION){
 		toBeDispatchedParcels = getAVAILABLEParcels();
 		if(!toBeDispatchedParcels.isEmpty()){
@@ -226,7 +229,6 @@ public class DispatchAgent implements CommUser, TickListener {
 			unreadMessages = readMessages();
 
 			for (CNPMessage m : unreadMessages) {
-				lostContractors.clear();
 
 				switch (m.getType()) {
 
@@ -237,12 +239,7 @@ public class DispatchAgent implements CommUser, TickListener {
 					// TODO: if you work with an auction deadline, check that only proposals that arrive before the auction deadline are added
 					CNPProposalMessage mess = (CNPProposalMessage)m;
 					proposals.add(mess.getProposal());
-					// send ACCEPT_PROPOSAL message to TruckAgent who won this auction					
-					sendAcceptProposal(mess.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL);
-					// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
-					for(Proposal p: proposals){
-						sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer());
-					}
+
 					
 					break;
 				case FAILURE:
@@ -262,7 +259,6 @@ public class DispatchAgent implements CommUser, TickListener {
 				}
 			}
 			generateAuctionResults(timeLapse);
-
 		}
 	}
 
@@ -276,6 +272,11 @@ public class DispatchAgent implements CommUser, TickListener {
 			auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), timeLapse.getTime());
 			auctionResults.add(auctionResult);
 			/// change ParcelState
+		} else {
+			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
+			for(Proposal p: proposals){
+				sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer());
+			}
 		}
 	}
 	

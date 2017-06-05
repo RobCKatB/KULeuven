@@ -20,6 +20,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
@@ -427,12 +428,15 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		
 		public void doPDP(CNPMessage m, TimeLapse time){
 			defaultpdpmodel.service(this, m.getAuction().getParcel(), time); // calls deliver and pickup methods
+			//TODO make this work
+			roadModel.get().followPath(this, path, time);
 			//TODO add method to move from current position to parcel and decrease fuel level
 			defaultpdpmodel.pickup(this, m.getAuction().getParcel(), time); // status of parcel will be changed to PICKING_UP
+			// wachten tot pickup klaar is
 			//TODO add method to move from parcel to delivery location and decrease fuel level
 			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
-
+			// wachten tot deliver klaar is
 			///sendDirectMessage(cnpFailureMessage, auction.getSenderAuction());
 			defaultpdpmodel.continuePreviousActions(this, time); //sets status of Parcel on DELIVERED
 			//TODO change vehicle state back to IDLE when parcel got status DELIVERED
@@ -442,7 +446,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			ParcelState.DELIVERED;
 			
 			//TODO when PDP is finished, check whether there is still more energy than the energy needed to go to the charging station
-			// is there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to CHARGING
+			// it there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to TO_CHARGING
 		}
 		
 		/*

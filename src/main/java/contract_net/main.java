@@ -142,6 +142,7 @@ public final class main {
     for (int i = 0; i < NUM_DEPOTS; i++) {
     	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, auctionResultsList);
     	simulator.register(dispatchAgent);
+    	// next registration maybe not needed
     	commModel.register(dispatchAgent);// this registration links commUser dispatchAgent with the commDevice for the dispatchAgent
     }
     
@@ -149,6 +150,7 @@ public final class main {
     for (int i = 0; i < NUM_TRUCKS; i++) {
     	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
       simulator.register(truckAgent);
+   // next registration maybe not needed
       commModel.register(truckAgent);
     }
 
@@ -158,12 +160,13 @@ public final class main {
         Parcel.builder(roadModel.getRandomPosition(rng),
           roadModel.getRandomPosition(rng))
           .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
-          .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
+          .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
           .buildDTO()));
     }
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
     	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), rng);
     	simulator.register(chargingStation);
+    	// next registration maybe not needed
     	commModel.register(chargingStation);
     }
     
