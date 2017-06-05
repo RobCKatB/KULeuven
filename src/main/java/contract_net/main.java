@@ -20,6 +20,7 @@ import static com.google.common.collect.Maps.newHashMap;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -139,27 +140,32 @@ public final class main {
     final RoadModel roadModel = simulator.getModelProvider().getModel(
       RoadModel.class);
     final CommModel commModel = simulator.getModelProvider().getModel(CommModel.class);
+    final List<AuctionResult> auctionResultsList;
+
+    // generate an empty list to store the results of each auction
+    AuctionResults auctionResults = new AuctionResults();
+    auctionResultsList = auctionResults.getAuctionResults();
     
-    // add depots, truks and parcels to simulator
+    // add depots, trucks and parcels to simulator
     for (int i = 0; i < NUM_DEPOTS; i++) {
-    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel);
+    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, auctionResultsList);
     	simulator.register(dispatchAgent);
     	commModel.register(dispatchAgent);// this registration links commUser dispatchAgent with the commDevice for the dispatchAgent
     }
     
 
     for (int i = 0; i < NUM_TRUCKS; i++) {
-    	TruckAgent truckAgent = new TruckAgent(roadModel.getRandomPosition(rng),
-    	        TRUCK_CAPACITY, rng);
+    	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
       simulator.register(truckAgent);
       commModel.register(truckAgent);
     }
 
+    //// or use ParcelGenerator class
     for (int i = 0; i < NUM_PARCELS; i++) {
       simulator.register(new Customer(
         Parcel.builder(roadModel.getRandomPosition(rng),
           roadModel.getRandomPosition(rng))
-          .serviceDuration(SERVICE_DURATION)
+          .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
           .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
           .buildDTO()));
     }

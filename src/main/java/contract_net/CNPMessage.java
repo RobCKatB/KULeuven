@@ -1,5 +1,5 @@
 package contract_net;
-//
+
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
@@ -13,14 +13,14 @@ public class CNPMessage implements MessageContents {
 	private ContractNetMessageType type;
 	private Auction auction; // parcel to be picked up by a Truck, auction initiated by DispatchAgent
 	private Optional<CommDevice> commDevice;
+	private CommUser sender;
 
 	// or Auction instead of Parcel as parameter for constructor?
-	public CNPMessage(Auction auction, ContractNetMessageType type){
+	public CNPMessage(Auction auction, ContractNetMessageType type, CommUser sender){
 		commDevice = Optional.absent(); // commDevice contains unreadMessages and outbox
 		this.auction = auction;
 		this.type = type;
 		this.sender = sender;
-		this.receiver = receiver;
 	}
 	
 	
@@ -55,13 +55,15 @@ public class CNPMessage implements MessageContents {
 	    return contents();
 	  }
 
+	  
 	  /**
 	   * @return <code>true</code> if this message is broadcast, or
 	   *         <code>false</code> if this message is a direct message.
 	   */
-	  public boolean isBroadcast() {
-	    return !to().isPresent();
-	  }
+	  //public boolean isBroadcast() {
+	  //  return !to().isPresent();
+	  //}
+	 
 
 
 	  @Override
@@ -73,12 +75,14 @@ public class CNPMessage implements MessageContents {
 
 	
 	CommUser from() {
-		return null;
+		return sender;
 	}
-
-	Optional<CommUser> to() {
-		return null;
+	
+	/*
+	Optional<CommUser> to(){
+		System.out.println("this is a broadcast message");
 	}
+	*/
 
 	MessageContents contents() {
 		return null;

@@ -1,5 +1,5 @@
 package contract_net;
-//KB
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.widgets.DateTime;
@@ -13,23 +13,13 @@ public class Auction {
 	private Parcel parcel;
 	private long deadline;
 	private boolean activeAuction;
+	private long startTime;
 
-	
-	
-	public boolean isActiveAuction() {
-		return activeAuction;
-	}
-
-
-	public void setActiveAuction(boolean activeAuction) {
-		this.activeAuction = activeAuction;
-	}
-
-
-	public Auction(DispatchAgent dispatchAgent, Parcel parcel, long deadline, boolean activeAuction){
+	public Auction(DispatchAgent dispatchAgent, Parcel parcel, long startTime, long deadline, boolean activeAuction){
 		this.auctionId = generateAuctionId();
 		this.dispatchAgent = dispatchAgent;
 		this.parcel = parcel;	
+		this.startTime = startTime;
 		this.deadline = deadline;
 		this.activeAuction = activeAuction;
 	}
@@ -79,4 +69,27 @@ public class Auction {
 		return dispatchAgent;
 	}
 	
+	public boolean isActiveAuction() {
+		return activeAuction;
+	}
+
+
+	public void setActiveAuction(boolean activeAuction) {
+		this.activeAuction = activeAuction;
+	}
+
+
+	public long getStartTime() {
+		return startTime;
+	}
+
+
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+
+
+	public void setAuctionId(int auctionId) {
+		this.auctionId = auctionId;
+	}
 }

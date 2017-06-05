@@ -4,6 +4,7 @@ package contract_net;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,18 +44,20 @@ public class DispatchAgent implements CommUser, TickListener {
 	private Collection<Parcel> toBeDispatchedParcels;
 	private List<CNPMessage> CNPmessages = new ArrayList<CNPMessage>();
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
+	private List<Proposal> proposals = new ArrayList<Proposal>();
 	//list of potential VehicleAgent contractors
 	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
 	// deze twee moeten in veiling
 	private List<TruckAgent> lostContractors = new ArrayList<TruckAgent>();
 	private TruckAgent winningContractor = null;
 	private ArrayList<CommUser> commUsers = new ArrayList<CommUser>(); // TruckAgent commUsers coupled to DispatchAgent
-
+	private Proposal bestProposal;
 	//used to record the number of received messages
 	//in this version, we impose the manager to wait till receiving answers from all the contractors
 	private int numberOfreceivedMessages = 0;
-	//record the best proposal
-	private int bestProposal = Integer.MAX_VALUE;
+	private AuctionResult auctionResult;
+	private List<AuctionResult> auctionResults;
+
 	//record the agent responsible for the best proposal
 	private Optional<CommDevice> commDevice;
 	// settings of commDevice
@@ -68,9 +71,10 @@ public class DispatchAgent implements CommUser, TickListener {
 	private final RandomGenerator rng;
 	private CNPMessage cnpmessage;
 
-	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RandomGenerator rng) {
+	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RandomGenerator rng, List<AuctionResult> auctionResults) {
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
 		toBeDispatchedParcels = new ArrayList<Parcel>();
+		this.auctionResults = auctionResults;
 		commDevice = Optional.absent();
 		// settings for commDevice belonging to DispatchAgent
 		this.rng = rng;
@@ -148,8 +152,8 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	public void sendCallForProposals(Parcel parcel, long currentTime, long AUCTION_DURATION){
 		ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
-		Auction auction = new Auction(this, parcel, currentTime + AUCTION_DURATION, false);
-		CNPMessage cnpMessage = new CNPMessage(auction, type);
+		Auction auction = new Auction(this, parcel, currentTime + AUCTION_DURATION, currentTime, false);
+		CNPMessage cnpMessage = new CNPMessage(auction, type, this);
 		sendBroadcastMessage(cnpMessage);
 	}
 
@@ -157,16 +161,23 @@ public class DispatchAgent implements CommUser, TickListener {
 		toBeDispatchedParcels = getAVAILABLEParcels();
 		if(!toBeDispatchedParcels.isEmpty()){
 			for(Parcel p: toBeDispatchedParcels){
+				Auction auction = new Auction(this, p, currentTime, AUCTION_DURATION, true);
 				sendCallForProposals(p, currentTime, AUCTION_DURATION);
 			}
 		}
 	}
 
-	public void selectBestProposal(List<Proposal> proposals){
+	public Proposal selectBestProposal(List<Proposal> proposals){
+		long maxProposal = proposals.get(0).getTimeCostProposal();
+		Proposal bestProposal = proposals.get(0);
 		for(Proposal p: proposals){
-			p.setTimeCostBid();
-		};
-
+			if (p.getTimeCostProposal() > maxProposal){
+				maxProposal = p.getTimeCostProposal();
+				bestProposal = p;
+			}
+			
+		}
+		return bestProposal;
 	}
 
 
@@ -262,77 +273,109 @@ public class DispatchAgent implements CommUser, TickListener {
 				switch (m.getType()) {
 
 				case REFUSE:
-					/// send REJECT_PROPOSAL message to TruckAgents who lost the auction
+					/// send reject message to TruckAgents who lost the auction
+					///sendReject(m.getAuction(), ContractNetMessageType.REJECT_PROPOSAL);
 					break;
 				case PROPOSE:
-					/// send ACCEPT_PROPOSAL message to TruckAgent who won this auction
-					/// add winning truckagent to ArrayList from class AuctionWinnerOverview
-					/// how to find the TruckAgent who has sent this message
-					/*
-					winningContractor = m.getWinner;
-					if(winningContractor != null)
-						sendDirectMessage(m, winningContractor);*/
+					// TODO: if you work with an auction deadline, check that only proposals that arrive before the auction deadline are added
+					CNPProposalMessage mess = (CNPProposalMessage)m;
+					proposals.add(mess.getProposal());
+					// send ACCEPT_PROPOSAL message to TruckAgent who won this auction					
+					sendAcceptProposal(mess.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL);
+					// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
+					sendRejectProposal(null, null, commUsers);
 					break;
 				case FAILURE:
 					// do nothing or in more advanced form of the program: rebroadcast call for proposal
 					break;
 				case INFORM_DONE:
-					/// truck tells that parcel is delivered
-					/////change the boolean delivered() of the corresponding parcel to true
-					/// store in AuctionResult
+					// truck tells that parcel is delivered
+					// TODO: store in AuctionResult that parcel is delivered
 					break;
 				case INFORM_RESULT:
-					/// truck tells that parcel is deliverd and gives information about the actual travel time, travel distance, ...
-					/// store this information in AuctionResult
+					// receive message from truck telling that parcel is delivered and giving information about the actual travel time, travel distance, fuel level,...
+					// TODO: store this information in AuctionResult
+					// TODO: set status of Package on IS_DELIVERED if this was not yet the case
 					break;
 				default:
 					break;
 				}
 			}
+			generateAuctionResults(timeLapse);
 
 		}
-	} else if (commDevice.get().getReceivedCount() == 0) {
-		//do nothing;
-	} else if (timeLapse.getStartTime()	- lastReceiveTime > LONELINESS_THRESHOLD) {
-		device.get().rebroadcast(Message);
 	}
-}
 
-// CommUser methods implemented
-@Override
-// not needed for us since the dispatch agent is a phone app, so it has not one position at a certain physical depot
-public Optional<Point> getPosition() {
-	// TODO Auto-generated method stub
-	return null;
-}
+	public void generateAuctionResults(TimeLapse timeLapse){
+		bestProposal = selectBestProposal(proposals);
+		if(bestProposal != null){
+			sendAcceptProposal(bestProposal.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL);
+			// stop this auction. In a more advanced model of the algorithm, you can decide to stop the auction only when 
+			// the truck has actually delivered the parcel and the INFORM_DONE message is sent
+			bestProposal.getAuction().setActiveAuction(false);
+			auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), timeLapse.getTime());
+			auctionResults.add(auctionResult);
+			/// change ParcelState
+		}
+	}
+	
+	public void sendAcceptProposal(Auction auction, ContractNetMessageType type){
+		CNPAcceptMessage cnpAcceptMessage = new CNPAcceptMessage(auction, type, this, bestProposal.getProposer(), bestProposal);
+		sendDirectMessage(cnpAcceptMessage, bestProposal.getProposer());
+	}
+	
+	public void sendRefusal(Auction auction, ContractNetMessageType type){
+		CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, type, this, auction.getSenderAuction(), type.toString());
+		sendDirectMessage(cnpRefusalMessage, auction.getSenderAuction());	
+	}
+	
+	 
+		public void sendRejectProposal(Auction auction, ContractNetMessageType s, List<CommUser> auctionLosers){
+			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, auctionLosers, s.toString());
+			//TODO loop through all elements from auctionLosers, and send each a direct message
+			sendDirectMessage(cnpRejectMessage, auction.getSenderAuction());
+		}
 
-@Override
-public void setCommDevice(CommDeviceBuilder builder) {
-	//    if (range >= 0) {
-	if (range >= 0) {
-		builder.setMaxRange(range);
+
+	public AuctionResult getAuctionResult() {
+		return auctionResult;
+	}
+
+	public void setAuctionResult(AuctionResult auctionResult) {
+		this.auctionResult = auctionResult;
+	}
+
+	// CommUser methods implemented
+	@Override
+	// not needed for us since the dispatch agent is a phone app, so it has not one position at a certain physical depot
+	public Optional<Point> getPosition() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setCommDevice(CommDeviceBuilder builder) {
+		//    if (range >= 0) {
+		if (range >= 0) {
+			builder.setMaxRange(range);
+		}
+		commDevice = Optional.of(builder
+				.setReliability(reliability)
+				.build());
+	}
+
+	@Override
+	public void afterTick(TimeLapse timeLapse) {
+		// TODO Auto-generated method stub
+	
 	}
 	commDevice = Optional.of(builder
 			.setReliability(reliability)
 			.build());
-}
-
-@Override
-public void afterTick(TimeLapse timeLapse) {
-	// TODO Auto-generated method stub
-
-}
-device = Optional.of(builder
-		.setReliability(reliability)
-		.build());
-
-}
-
-public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-	//// wat moet hier???
-}
-
-
-
-
+	
+	}
+	
+	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
+		//// wat moet hier???
+	}
 }

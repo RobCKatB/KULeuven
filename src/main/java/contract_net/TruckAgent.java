@@ -1,6 +1,8 @@
 // finalize auction stop criterion, followed by award and then end of auction
-//
+
 package contract_net;
+
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,6 +17,7 @@ import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
@@ -45,10 +48,11 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
     private List<CNPMessage> unreadMessages;
 	private long lastReceiveTime;
 	private DefaultPDPModel defaultpdpmodel;
-
+    private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
 	private static final double SPEED = 1000d;
 	private static final double ENERGYCONSUMPTION = 1d; // Per unit mileage
 	private static final double ENERGYCAPACITY = 1000d;
+
 	// for CommUser
 	  private final double range;
 	  private final double reliability;
@@ -77,42 +81,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	}
 
-	  /**
-		*calculate the distance a Truck has to travel to pickup and deliver a parcel: from its current position 
-		*to the parcel pickup position and from the parcel pickup  position to the parcel destination position
-		*Therefore, edgelengths of segments in the graph (model for streets) are summed
-	   */
-		public double calculateDistance(Optional<Point> currTruckPosition, Parcel parcel){
-			Point currentTruckPosition = currTruckPosition.get();
-			List<Point> currentToPickup = this.getRoadModel().getShortestPathTo(currentTruckPosition, parcel.getPickupLocation());
-			List<Point> pickupToDelivery = this.getRoadModel().getShortestPathTo(parcel.getPickupLocation(), parcel.getDeliveryLocation());
-			// make the sum of the vertices in the graph, from the first till the last point in the path
-			double currentToPickupLength = 0.0;
-			for(int i = 0; i < currentToPickup.size()-1; i++){
-				Point p1 = currentToPickup.get(i);
-				Point p2 = currentToPickup.get(i+1);
-				double edgelength1 = Point.distance(p1, p2);
-				currentToPickupLength = currentToPickupLength + edgelength1;
-			}
-			double pickupToDeliveryLength = 0.0;
-			for(int i = 0; i < pickupToDelivery.size()-1; i++){
-				Point p1 = pickupToDelivery.get(i);
-				Point p2 = pickupToDelivery.get(i+1);
-				double edgelength2 = Point.distance(p1, p2);
-				pickupToDeliveryLength = currentToPickupLength + edgelength2;
-			}
-			return currentToPickupLength+pickupToDeliveryLength;
-		}
-		
-		  /**
-			* travel time = distance/speed
-		   */
-		public long calculateTravelTime(Optional<Point> currentTruckPosition, Parcel parcel){
-			double shortestDistance = calculateDistance(currentTruckPosition, parcel);
-			long time = (long) (shortestDistance/SPEED);
-			return time;
-		}
-			
+	  
 		public void sendDirectMessage(CNPMessage content, CommUser recipient) {
 			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
 			CommDevice device = this.commDevice.get();
@@ -200,43 +169,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		}
 		
 		
-		/// from taxi example
-		 *   @Override
-  protected void tickImpl(TimeLapse time) {
-    final RoadModel rm = getRoadModel();
-    final PDPModel pm = getPDPModel();
-
-    if (!time.hasTimeLeft()) {
-      return;
-    }
-    if (!curr.isPresent()) {
-      curr = Optional.fromNullable(RoadModels.findClosestObject(
-        rm.getPosition(this), rm, Parcel.class));
-    }
-
-    if (curr.isPresent()) {
-      final boolean inCargo = pm.containerContains(this, curr.get());
-      // sanity check: if it is not in our cargo AND it is also not on the
-      // RoadModel, we cannot go to curr anymore.
-      if (!inCargo && !rm.containsObject(curr.get())) {
-        curr = Optional.absent();
-      } else if (inCargo) {
-        // if it is in cargo, go to its destination
-        rm.moveTo(this, curr.get().getDeliveryLocation(), time);
-        if (rm.getPosition(this).equals(curr.get().getDeliveryLocation())) {
-          // deliver when we arrive
-          pm.deliver(this, curr.get(), time);
-        }
-      } else {
-        // it is still available, go there as fast as possible
-        rm.moveTo(this, curr.get(), time);
-        if (rm.equalPosition(this, curr.get())) {
-          // pickup customer
-          pm.pickup(this, curr.get(), time);
-        }
-      }
-    }
-  }
 		*/
 		
 		// uit oude rinsim
@@ -283,26 +215,16 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		
 		*/
 		
+		
 
-		/* 
-		 * charging station
-		 */
-		public void charge(double amount){
-			this.energy = Math.max(this.energy+amount, ENERGYCAPACITY);
-		}
-		
-		public void setCommDevice(CommDeviceBuilder builder) {
-		    if (range >= 0) {
-		        builder.setMaxRange(range);
-		      }
-		      commDevice = Optional.of(builder
-		        .setReliability(reliability)
-		        .build());
-		}
-		
-		
+		  
+
 		@Override
 		protected void tickImpl(TimeLapse time) {
+		    final RoadModel roadModel = getRoadModel();
+		    final PDPModel pdpModel = getPDPModel();
+		    
+
 		/*
 	    if (!destination.isPresent()) {
 	      destination = Optional.of(roadModel.get().getRandomPosition(rng));
@@ -329,12 +251,23 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
 				    // TruckAgents can participate in auctions when they are IDLE (not occupied by anything else) and
 				    // if they are not charging
-					if(!isCharging && VehicleState.IDLE.equals(this.getPDPModel().getVehicleState(this))){
-						doProposal(this.getPosition(), m.getAuction(), this);
+					if(!isCharging && VehicleState.IDLE.equals(getPDPModel().getVehicleState(this))){
+						/// check that truck has enough capacity for the PDP task
+						doProposal(this.getPosition().get(), m.getAuction(), this);
+					} else {
+						sendFailure(m.getAuction(), ContractNetMessageType.FAILURE);
 					}
 					break;
 				case ACCEPT_PROPOSAL:
 					doPDP(m, time);
+
+					/*
+					// TODO: add accepted proposal to a List of all accepted proposals for this TruckAgent
+					 * CNPAcceptMessage cnpAccept = (CNPAcceptMessage)m;
+					 * acceptedProposals.add(cnpAccept.getProposal());
+					 * not right since this does not store all acceptedProposals for one TruckAgent, it just stores the acceptedProposal for this auction
+					 */
+
 					break;
 				case REJECT_PROPOSAL:
 					// do nothing. The TruckAgent did not win the Auction for a certain package, so currently no tasks for the truck
@@ -346,38 +279,105 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 		}
 		}
-		  
-/*
-		@Override
-		protected void tickImpl(TimeLapse time) {
-		    final RoadModel roadModel = getRoadModel();
-		    final PDPModel pdpModel = getPDPModel();
-		    
-		    
 
-		    // TruckAgent reads messages from DispatchAgent
-		    List<CNPMessage> messagesFromDispatch = readMessages();
-		    if (!isCharging){
-			    VehicleState s = pdpModel.getVehicleState(this);
-			    switch (s){
-			    case PICKING_UP:	
-			    	// send refuseProposalMesasge
-			    	break;
-			    case DELIVERING:
-			    	// sendRefuseProposal
-			    	break;
-			    case IDLE:
-			    	sendProposal();
-					break;
-				default:
-					break;
-			    }
-		    } else {
-				// send refuseProposalMessage
+		/* 
+		 * charging station
+		 */
+		public void charge(double amount){
+			this.energy = Math.max(this.energy+amount, ENERGYCAPACITY);
+		}
+		
+		// TODO: Robbert: methode schrijven om te checken hoeveel energie de Truck nog over heeft
+		public double checkEnergyLevel(){
+			return 10.0;
+		}
+		
+		/*
+		 * method to calculate how much energy is needed for the PDP task
+		 */
+		public double calculateEnergyConsumptionTask(Point currTruckPosition, Parcel parcel){
+			double distance = calculatePDPDistance(currTruckPosition, parcel);
+			double consumption = distance * ENERGYCONSUMPTION;
+			return consumption;
+		}
+		
+		/*
+		 * when the truck has delivered a parcel, it still needs at least enough energy to go to the closest charging station
+		 */
+		public double calculateEnergyConsumtionToChargingStation(Parcel parcel, ChargingStation chargingStation){
+			double distance = calculatePointToPointDistance(parcel.getDeliveryLocation(), chargingStation.getPosition().get());
+			double consumption = distance * ENERGYCONSUMPTION;
+			return consumption;
+		}
+
+		/*
+		 * method to check whether the truck has enough energy to do the PDP task and go to the closest charging station 
+		 * after the task has finished (at least if fuel level is low after the PDP task has finished)
+		 */
+		public boolean enoughEnergy(Point currTruckPosition, Parcel parcel, ChargingStation chargingStation){
+			if (calculateEnergyConsumptionTask(currTruckPosition, parcel) + calculateEnergyConsumtionToChargingStation(parcel, chargingStation) >  energy){
+				return true;
+			}
+			else {
+				return false;
 			}
 		}
-		*/    
+
+		/**
+		*calculate the distance a Truck has to travel to pickup and deliver a parcel: from its current position 
+		*to the parcel pickup position and from the parcel pickup  position to the parcel destination position
+		*Therefore, edgelengths of segments in the graph (model for streets) are summed
+	   */		
+		public double calculatePDPDistance(Point currentTruckPosition, Parcel parcel){
+			double currentToPickup = calculatePointToPointDistance(currentTruckPosition, parcel.getPickupLocation());
+			double pickupToDelivery = calculatePointToPointDistance(parcel.getPickupLocation(), parcel.getDeliveryLocation());
+			return currentToPickup + pickupToDelivery;
+		}
 		
+		/*
+		 * calculate edge distance between two points in a graph
+		 */
+		public double calculatePointToPointDistance(Point start, Point end){
+			List<Point> fromStartToEnd = this.getRoadModel().getShortestPathTo(start, end);
+			// make the sum of the vertices in the graph, from the first till the last point in the path
+			double fromStartToEndLength = 0.0;
+			for(int i = 0; i < fromStartToEnd.size()-1; i++){
+				Point p1 = fromStartToEnd.get(i);
+				Point p2 = fromStartToEnd.get(i+1);
+				double edgelength = Point.distance(p1, p2);
+				fromStartToEndLength += edgelength;
+			}
+			return fromStartToEndLength;
+		}
+		
+		  /**
+			* travel time = distance/speed
+		   */
+		public long calculateTravelTimePDP(Point currentTruckPosition, Parcel parcel){
+			double shortestDistance = calculatePDPDistance(currentTruckPosition, parcel);
+			long time = (long) (shortestDistance/SPEED);
+			/// somehow we need to change the value of serviceDuration(SERVICE_DURATION), or we have to remove this from the main
+			return time;
+		}
+			
+		/*
+		 * commDevice settings
+		 * (non-Javadoc)
+		 * @see com.github.rinde.rinsim.core.model.comm.CommUser#setCommDevice(com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder)
+		 */
+		public void setCommDevice(CommDeviceBuilder builder) {
+		    if (range >= 0) {
+		        builder.setMaxRange(range);
+		      }
+		      commDevice = Optional.of(builder
+		        .setReliability(reliability)
+		        .build());
+		}
+		
+
+		/*
+		 * TruckAgent reads the messages he received
+		 */
 	    public List<CNPMessage> readMessages() {
 	        CommDevice device = this.commDevice.get();
 	        List<CNPMessage> contents = new ArrayList<CNPMessage>();
@@ -401,33 +401,72 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		}
 			
 		
-		public void doProposal(Optional<Point> currentTruckPosition, Auction auction, TruckAgent proposer){
-			long timeCostBid = calculateTravelTime(currentTruckPosition, auction.getParcel());
+		public void doProposal(Point currentTruckPosition, Auction auction, TruckAgent proposer){
+			long timeCostBid = calculateTravelTimePDP(currentTruckPosition, auction.getParcel());
+			// TODO: check whether the truck has enough capacity to load the parcel
 			Proposal proposal = new Proposal(auction, proposer, timeCostBid);
-			proposals.add(proposal);
-			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
-			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal);
-			sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
-			// reply-to messageID
+			// TODO: methode closestChargingStation() schrijven om dichtste chargingStation te vinden, die een object van het type ChargingStation teruggeeft
+			// TODO: in more advanced version of the program with a certain delivery time for a parcel:
+			// if currentTime is larger than the desired delivery time for the parcel, send no proposal
+			
+			// check whether there is enough energy to travel this distance, and only then do Proposal, otherwise send REFUSE
+			if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
+				// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
+				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
+				proposals.add(proposal);
+				// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
+				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent());
+				sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
+				// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
+				// the truck can participate in other auctions in the meantime
+			} else {
+				//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
+				s = VehicleState.CHARGING;
+				sendRefusal(auction, s);
+				//TODO: go to charging station
+			}
+
 		}
 		
 		public void doPDP(CNPMessage m, TimeLapse time){
-			//// add method to move from current position to parcel
+			defaultpdpmodel.service(this, m.getAuction().getParcel(), time); // calls deliver and pickup methods
+			//TODO add method to move from current position to parcel and decrease fuel level
 			defaultpdpmodel.pickup(this, m.getAuction().getParcel(), time); // status of parcel will be changed to PICKING_UP
-			//// add method to move from parcel to delivery location
-			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERED
+			//TODO add method to move from parcel to delivery location and decrease fuel level
+			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
+
+			///sendDirectMessage(cnpFailureMessage, auction.getSenderAuction());
+			defaultpdpmodel.continuePreviousActions(this, time); //sets status of Parcel on DELIVERED
+			//TODO change vehicle state back to IDLE when parcel got status DELIVERED
+			//TODO send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
+			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE);
+			// TODO change parcel state to DELIVERED if that was not yet done
+			ParcelState.DELIVERED;
 			
-			//// think whether it still has to be added to an arrayList
+			//TODO when PDP is finished, check whether there is still more energy than the energy needed to go to the charging station
+			// is there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to CHARGING
 		}
 		
+		/*
+		 * send messages from TruckAgent to DispatchAgent
+		 */
 		public void sendRefusal(Auction auction, VehicleState s){
-			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, s.toString());
-			sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());
+			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), s.toString());
+			sendDirectMessage(cnpRefusalMessage, auction.getSenderAuction());	
+		}
+		
+		public void sendFailure(Auction auction, ContractNetMessageType t){
+			CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, t, this, auction.getSenderAuction(), t.toString());
+			sendDirectMessage(cnpFailureMessage, auction.getSenderAuction());
 		}
 
-		    
 
+		
+		public void sendInformDone(Auction auction, ContractNetMessageType type){
+			CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getSenderAuction());
+			sendDirectMessage(cnpInformDoneMessage, auction.getSenderAuction());	
+		}
 
 		@Override
 		public Optional<Point> getPosition() {
@@ -436,7 +475,13 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		      }
 		      return Optional.absent();
 		}
-		
 
-	 
+		public List<Proposal> getAcceptedProposals() {
+			return acceptedProposals;
+		}
+
+		public void setAcceptedProposals(List<Proposal> acceptedProposals) {
+			this.acceptedProposals = acceptedProposals;
+		}
+ 
 }
