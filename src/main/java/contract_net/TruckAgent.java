@@ -79,52 +79,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	}
 
-<<<<<<< HEAD
-	  
-=======
-	  /**
-		*calculate the distance a Truck has to travel to pickup and deliver a parcel: from its current position 
-		*to the parcel pickup position and from the parcel pickup  position to the parcel destination position
-		*Therefore, edgelengths of segments in the graph (model for streets) are summed
-	   */
-		public double calculateDistance(Optional<Point> currTruckPosition, Parcel parcel){
-			Point currentTruckPosition = currTruckPosition.get();
-			List<Point> currentToPickup = this.getRoadModel().getShortestPathTo(currentTruckPosition, parcel.getPickupLocation());
-			List<Point> pickupToDelivery = this.getRoadModel().getShortestPathTo(parcel.getPickupLocation(), parcel.getDeliveryLocation());
-			// make the sum of the vertices in the graph, from the first till the last point in the path
-			double currentToPickupLength = 0.0;
-			for(int i = 0; i < currentToPickup.size()-1; i++){
-				Point p1 = currentToPickup.get(i);
-				Point p2 = currentToPickup.get(i+1);
-				double edgelength1 = Point.distance(p1, p2);
-				currentToPickupLength = currentToPickupLength + edgelength1;
-			}
-			double pickupToDeliveryLength = 0.0;
-			for(int i = 0; i < pickupToDelivery.size()-1; i++){
-				Point p1 = pickupToDelivery.get(i);
-				Point p2 = pickupToDelivery.get(i+1);
-				double edgelength2 = Point.distance(p1, p2);
-				pickupToDeliveryLength = currentToPickupLength + edgelength2;
-			}
-			return currentToPickupLength+pickupToDeliveryLength;
-		}
-		
-		  /**
-			* travel time = distance/speed
-		   */
-		public long calculateTravelTime(Optional<Point> currentTruckPosition, Parcel parcel){
-			double shortestDistance = calculateDistance(currentTruckPosition, parcel);
-			long time = (long) (shortestDistance/SPEED);
-			return time;
-		}
-		
-		public long calculateTravelEnergy(Optional<Point> currentTruckPosition, Parcel parcel){
-			double shortestDistance = calculateDistance(currentTruckPosition, parcel);
-			long energy = (long) (shortestDistance*ENERGYCONSUMPTION);
-			return energy;
-		}
-			
->>>>>>> branch 'master' of https://github.com/RobCKatB/KULeuven.git
 		public void sendDirectMessage(CNPMessage content, CommUser recipient) {
 			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
 			CommDevice device = this.commDevice.get();
