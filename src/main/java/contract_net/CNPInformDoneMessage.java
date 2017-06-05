@@ -10,5 +10,4 @@ public class CNPInformDoneMessage extends CNPMessage {
 	}
 	
 	
-
 }

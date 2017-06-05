@@ -1,7 +1,6 @@
 package contract_net;
 
 import java.util.List;
-
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.google.common.base.Optional;
 

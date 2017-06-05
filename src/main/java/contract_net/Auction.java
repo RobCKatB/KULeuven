@@ -23,8 +23,7 @@ public class Auction {
 		this.deadline = deadline;
 		this.activeAuction = activeAuction;
 	}
-	
-	
+		
 	public DispatchAgent getDispatchAgent() {
 		return dispatchAgent;
 	}

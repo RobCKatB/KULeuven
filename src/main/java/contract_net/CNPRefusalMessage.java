@@ -3,7 +3,6 @@ package contract_net;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.google.common.base.Optional;
 
-//
 public class CNPRefusalMessage extends CNPMessage {
 
 	private Auction auction;

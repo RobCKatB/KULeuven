@@ -18,5 +18,4 @@ public class AuctionResults {
 	public void setAuctionResults(List<AuctionResult> auctionResults) {
 		this.auctionResults = auctionResults;
 	}
-
 }

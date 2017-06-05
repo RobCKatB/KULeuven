@@ -23,5 +23,4 @@ public class CNPAcceptMessage extends CNPMessage {
 	Optional<CommUser> to(){
 		return Optional.of(receiver);
 	}	
-
 }

@@ -1,5 +1,5 @@
 package contract_net;
-//
+
 import java.util.List;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;

@@ -1,5 +1,3 @@
-// finalize auction stop criterion, followed by award and then end of auction
-
 package contract_net;
 
 import static com.google.common.base.Preconditions.checkState;

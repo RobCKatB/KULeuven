@@ -1,5 +1,5 @@
 package contract_net;
-//
+
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 
 public class Proposal {

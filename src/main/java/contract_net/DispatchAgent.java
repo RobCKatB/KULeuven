@@ -1,7 +1,5 @@
 package contract_net;
 
-// we are calling methods from com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

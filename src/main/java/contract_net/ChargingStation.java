@@ -1,5 +1,5 @@
 package contract_net;
-//
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
