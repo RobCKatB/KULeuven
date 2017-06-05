@@ -178,47 +178,6 @@ public class DispatchAgent implements CommUser, TickListener {
 		return bestProposal;
 	}
 
-
-	/// uit oude Rinsim
-/*
-	private AcceptProposal chooseBestProposal(Collection<Proposal> proposals, long currentTime) {
-		AcceptProposal accepted = null;
-		Iterator<Proposal> it = proposals.iterator();
-		Proposal best = it.next();
-		Proposal second = null;
-		if (it.hasNext()) {
-			second = it.next();
-			if (second.getDeliveryTime() < best.getDeliveryTime()) {
-				Proposal p = best;
-				best = second;
-				second = p;
-			}
-			while (it.hasNext()) {
-				Proposal p = it.next();
-				if (p.getDeliveryTime() < best.getDeliveryTime()) {
-					second = best;
-					best = p;
-				} else if (p.getDeliveryTime() < second.getDeliveryTime()) {
-					second = p;
-				}
-			}
-		}
-	
-		
-			// uit Goosens
-		protected CNPAgent getWorkerWithBestProposal() {
-		double bestProposal = Double.MAX_VALUE;
-		CNPAgent bestAgent = null;
-		for (CNPAgent agent: this.proposals.keySet()) {
-			double proposal = this.proposals.get(agent);
-			if (proposal < bestProposal) {
-				bestProposal = proposal;
-				bestAgent = agent;
-			}
-		}
-		return bestAgent;
-	}
-*/
     public List<CNPMessage> readMessages() {
         CommDevice device = this.commDevice.get();
         List<CNPMessage> contents = new ArrayList<CNPMessage>();
@@ -257,6 +216,7 @@ public class DispatchAgent implements CommUser, TickListener {
 	    */
 		
 		long currentTime = timeLapse.getTime();
+		// TODO remove AUCTION_DURATION and take care that auction stops only when dispatch agent has given an ACCEPT_PROPOSAL to a truckagent
 	    dispatchParcels(currentTime, AUCTION_DURATION);
 	
 
@@ -271,8 +231,7 @@ public class DispatchAgent implements CommUser, TickListener {
 				switch (m.getType()) {
 
 				case REFUSE:
-					/// send reject message to TruckAgents who lost the auction
-					///sendReject(m.getAuction(), ContractNetMessageType.REJECT_PROPOSAL);
+					// do nothing
 					break;
 				case PROPOSE:
 					// TODO: if you work with an auction deadline, check that only proposals that arrive before the auction deadline are added
@@ -281,7 +240,10 @@ public class DispatchAgent implements CommUser, TickListener {
 					// send ACCEPT_PROPOSAL message to TruckAgent who won this auction					
 					sendAcceptProposal(mess.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL);
 					// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
-					sendRejectProposal(null, null, commUsers);
+					for(Proposal p: proposals){
+						sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer());
+					}
+					
 					break;
 				case FAILURE:
 					// do nothing or in more advanced form of the program: rebroadcast call for proposal
@@ -328,10 +290,10 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 	
 	 
-		public void sendRejectProposal(Auction auction, ContractNetMessageType s, List<CommUser> auctionLosers){
-			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, auctionLosers, s.toString());
+		public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser){
+			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, s.toString());
 			//TODO loop through all elements from auctionLosers, and send each a direct message
-			sendDirectMessage(cnpRejectMessage, auction.getSenderAuction());
+			sendDirectMessage(cnpRejectMessage, loser);
 		}
 
 

@@ -7,12 +7,12 @@ import com.google.common.base.Optional;
 public class CNPRejectMessage extends CNPMessage {
 
 	private String rejectionReason;
-	private List<CommUser> receivers;
+	private CommUser receiver;
 	
-	public CNPRejectMessage(Auction auction, ContractNetMessageType type, CommUser sender, List<CommUser> receivers, String rejectionReason) {
+	public CNPRejectMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, String rejectionReason) {
 		super(auction, type, sender);
 		this.rejectionReason = rejectionReason;
-		this.receivers = receivers;
+		this.receiver = receiver;
 	}
 
 	public String getRejectionReason() {
@@ -23,7 +23,7 @@ public class CNPRejectMessage extends CNPMessage {
 		this.rejectionReason = rejectionReason;
 	}
 	
-	Optional<List<CommUser>> to(){
-		return Optional.of(receivers);
+	Optional<CommUser> to(){
+		return Optional.of(receiver);
 	}
 }
