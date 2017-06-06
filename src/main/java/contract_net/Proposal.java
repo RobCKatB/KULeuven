@@ -46,5 +46,19 @@ public class Proposal {
 	}	
 	
 	//TODO ?? include method isReplyTo to check that the proposal is linked to the right call for proposal message
+	
+	@Override
+	public String toString() {
+		 StringBuilder builder = new StringBuilder("Proposal [")
+					.append("auction: ")
+					.append(auction.getId())
+					.append(",")
+					.append(getTimeCostProposal());
+		 
 
+
+		builder.append("]");
+			  
+		return builder.toString();
+	}
 }

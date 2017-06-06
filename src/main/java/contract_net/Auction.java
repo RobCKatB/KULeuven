@@ -23,6 +23,10 @@ public class Auction {
 		this.auctionDuration = deadline;
 		this.activeAuction = activeAuction;
 	}
+	
+	public int getId(){
+		return auctionId;
+	}
 		
 	public DispatchAgent getDispatchAgent() {
 		return dispatchAgent;
@@ -90,5 +94,30 @@ public class Auction {
 
 	public void setAuctionId(int auctionId) {
 		this.auctionId = auctionId;
+	}
+	
+	@Override
+	public String toString() {
+		 StringBuilder builder = new StringBuilder("Auction|")
+				 	.append(auctionId)
+				 	.append("[")
+					.append(getDispatchAgent())
+					.append(",")
+					.append(getParcel())
+					.append(",")
+					.append("starttime: ").append(getStartTime())
+					.append(",")
+					.append("duration: ").append(getAuctionDuration())
+					.append(",");
+		 
+		if(isActiveAuction()){
+			builder.append("active");
+		}else{
+			builder.append("inachtive");
+		}
+
+		builder.append("]");
+			  
+		return builder.toString();
 	}
 }
