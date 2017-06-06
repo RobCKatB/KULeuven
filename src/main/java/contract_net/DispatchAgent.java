@@ -326,4 +326,18 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 	
 	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder("DispatchAgent [");
+				
+		builder
+		.append("num parcels: ")
+		.append(toBeDispatchedParcels.size())
+		
+		
+		
+			  
+		return builder.toString();
+	}
+	
 }
