@@ -305,12 +305,6 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	@Override
 	public void afterTick(TimeLapse timeLapse) {
-		// TODO Auto-generated method stub
-	
-	}
-	commDevice = Optional.of(builder
-			.setReliability(reliability)
-			.build());
 	
 	}
 	
