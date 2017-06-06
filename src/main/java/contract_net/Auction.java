@@ -11,7 +11,7 @@ public class Auction {
     private int auctionId;
 	private DispatchAgent dispatchAgent;
 	private Parcel parcel;
-	private long deadline;
+	private long auctionDuration;
 	private boolean activeAuction;
 	private long startTime;
 
@@ -20,7 +20,7 @@ public class Auction {
 		this.dispatchAgent = dispatchAgent;
 		this.parcel = parcel;	
 		this.startTime = startTime;
-		this.deadline = deadline;
+		this.auctionDuration = deadline;
 		this.activeAuction = activeAuction;
 	}
 		
@@ -44,13 +44,13 @@ public class Auction {
 	}
 
 
-	public long getDeadline() {
-		return deadline;
+	public long getAuctionDuration() {
+		return auctionDuration;
 	}
 
 
-	public void setDeadline(long deadline) {
-		this.deadline = deadline;
+	public void setAuctionDuration(long deadline) {
+		this.auctionDuration = deadline;
 	}
 
 

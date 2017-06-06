@@ -238,16 +238,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		//long currentTime = time.getTime();
 
 		if (commDevice.get().getUnreadCount() > 0) {
-			lastReceiveTime = time.getStartTime();
 			unreadMessages = readMessages();
 
 			for (CNPMessage m : unreadMessages) {
 				
-				long auctionStartTime = m.getAuction().getDispatchAgent().getCurrentTime();
-				long runningTime = time.getTime();
-				
-				// auctiondeadline may not be exceeded
-				if (runningTime-auctionStartTime < m.getAuction().getDeadline()){
 					switch (m.getType()) {
 
 					case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
@@ -277,10 +271,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 					default:
 						break;
 					}
-				} else {
-					//stop auction when auction deadline has passed
-					m.getAuction().setActiveAuction(false);
-				}
+				} 
 			}
 		}
 		}

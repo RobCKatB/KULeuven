@@ -45,6 +45,8 @@ public class DispatchAgent implements CommUser, TickListener {
 	private List<CNPMessage> CNPmessages = new ArrayList<CNPMessage>();
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
 	private List<Proposal> proposals = new ArrayList<Proposal>();
+	private List<Proposal> tooLateProposals = new ArrayList<Proposal>();
+	private List<Proposal> rejectedProposals = new ArrayList<Proposal>();
 	//list of potential VehicleAgent contractors
 	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
 	// deze twee moeten in veiling
@@ -111,10 +113,15 @@ public class DispatchAgent implements CommUser, TickListener {
 						// do nothing
 						break;
 					case PROPOSE:
-						// TODO: if you work with an auction deadline, check that only proposals that arrive before the auction deadline are added
 						CNPProposalMessage mess = (CNPProposalMessage)m;
-						proposals.add(mess.getProposal());
-						
+						// check that only proposals that arrive before the auction deadline are added
+						if(m.getTimeSent() - m.getAuction().getStartTime()  < m.getAuction().getAuctionDuration())
+						{
+							proposals.add(mess.getProposal());
+						} else {
+							m.getAuction().setActiveAuction(false);
+							tooLateProposals.add(mess.getProposal());
+						}
 						break;
 					case FAILURE:
 						// do nothing or in more advanced form of the program: rebroadcast call for proposal
@@ -184,7 +191,6 @@ public class DispatchAgent implements CommUser, TickListener {
 		sendBroadcastMessage(cnpMessage);
 	}
 
-	// TODO AUCTION_DURATION
 	public void dispatchParcels(long currentTime, long AUCTION_DURATION){
 		toBeDispatchedParcels = getAVAILABLEParcels();
 		if(!toBeDispatchedParcels.isEmpty()){
@@ -235,17 +241,21 @@ public class DispatchAgent implements CommUser, TickListener {
 		bestProposal = selectBestProposal(proposals);
 		if(bestProposal != null){
 			sendAcceptProposal(bestProposal.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
-			// stop this auction. In a more advanced model of the algorithm, you can decide to stop the auction only when 
-			// the truck has actually delivered the parcel and the INFORM_DONE message is sent
-			auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), timeLapse.getTime());
-			auctionResults.add(auctionResult);
-			/// change ParcelState
+			//TODO change ParcelState
 		} else {
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
 			for(Proposal p: proposals){
-				sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), timeLapse);
+				rejectedProposals.add(p);
+				sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
 			}
 		}
+		// send REJCECT_PROPOSAL message to all TruckAgent who sent their proposal after the auction deadline had passed
+		for(Proposal p: tooLateProposals){
+			rejectedProposals.add(p);
+			sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "too late", timeLapse);
+		}
+		auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), AUCTION_DURATION, rejectedProposals);
+		auctionResults.add(auctionResult);
 	}
 	
 	public void sendAcceptProposal(Auction auction, ContractNetMessageType type, TimeLapse time){
@@ -259,8 +269,8 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 	
 	 
-		public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser, TimeLapse time){
-			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, s.toString(), time.getTime());
+		public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser, String rejectionReasen, TimeLapse time){
+			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, rejectionReasen, time.getTime());
 			//TODO loop through all elements from auctionLosers, and send each a direct message
 			sendDirectMessage(cnpRejectMessage, loser);
 		}

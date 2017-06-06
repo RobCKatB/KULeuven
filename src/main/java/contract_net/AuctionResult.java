@@ -12,11 +12,12 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 public class AuctionResult {
 	
 	private Auction auction;
-	long auctionEndTime;
+	long auctionDuration;
 	private Parcel parcel;
 	private DispatchAgent dispatchAgent;
 	private TruckAgent truckAgent;
 	private Proposal bestProposal;
+	private List<Proposal> rejectedProposals;
 	private long calculatedTimeBid; // the travel time that the TruckAgent communicated to the Dispatch Agent for the PDP task
 	private long actualTotalTime; // actual time the Truck needed from the position of the truck to the parcel pickup and from the parcel pickup to the parcel delivery
 	private long timeAvailableDelivered; // time between package becoming available and package being delivered
@@ -29,10 +30,11 @@ public class AuctionResult {
 	List<CNPMessage> inform_result; // message from TruckAgent to DispatchAgent that the PDP task is completed with some results (e.g. PDP time needed, ...)
 	TruckAgent winner;
 	
-	public AuctionResult(Auction auction, Proposal bestProposal, TruckAgent winner, long auctionDuration){
+	public AuctionResult(Auction auction, Proposal bestProposal, TruckAgent winner, long auctionDuration, List<Proposal> rejectedProposals){
 		this.auction = auction;
 		this.winner = winner;
-		this.auctionEndTime = auctionDuration;
+		this.auctionDuration = auctionDuration;
+		this.rejectedProposals = rejectedProposals;
 	}
 
 	public Auction getAuction() {
@@ -44,11 +46,11 @@ public class AuctionResult {
 	}
 
 	public long getAuctionDuration() {
-		return auctionEndTime;
+		return auctionDuration;
 	}
 
 	public void setAuctionDuration(long auctionDuration) {
-		this.auctionEndTime = auctionDuration;
+		this.auctionDuration = auctionDuration;
 	}
 
 	public TruckAgent getWinner() {
