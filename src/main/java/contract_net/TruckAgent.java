@@ -442,11 +442,52 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			//TODO change vehicle state back to IDLE when parcel got status DELIVERED
 			//TODO send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
 			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE);
+			// TODO: sendInformResult (first make method) and make class CNPInformResultMessage class extending CNPMessage, with extra parameter in constructor storing real travel time (and residual fuel level)
 			// TODO change parcel state to DELIVERED if that was not yet done
 			ParcelState.DELIVERED;
 			
 			//TODO when PDP is finished, check whether there is still more energy than the energy needed to go to the charging station
 			// it there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to TO_CHARGING
+		}
+		
+		///// uit oude Rinsim
+		private LinkedList<Point> getPath() {
+			LinkedList<Point> path = null;
+			RoadModel rm = truck.getRoadModel();
+			if (currentTask != null) {
+				Point pos = truck.getPosition();
+				if (pos.equals(currentTask.getPickupLocation()) && !truck.hasLoad()) {
+					truck.tryPickup();
+					path = new LinkedList<Point>(rm.getShortestPathTo(truck,
+									currentTask.getDeliveryLocation()));
+				} else if (pos.equals(currentTask.getDeliveryLocation())) {
+					truck.tryDelivery();
+					currentTask = null;
+				}
+			}
+			if (currentTask == null) {
+				Point destination = null;
+				if (!tasks.isEmpty()) {
+					currentTask = tasks.remove(0);
+					destination = currentTask.getPickupLocation();
+				} else if (proposal == null) {
+					List<Point> p = null;
+					while (p == null || p.size() < 2) {
+						destination = rm.getGraph()
+							.getRandomNode(simulator.getRandomGenerator());
+						p = rm.getShortestPathTo(truck, destination);
+					}
+					if (truck.getPosition().equals(p.get(0))) {
+						destination = p.get(1);
+					} else {
+						destination = p.get(0);
+					}
+				}
+				if (destination != null) {
+					path = new LinkedList<Point>(rm.getShortestPathTo(truck, destination));
+				}
+			}
+			return path;
 		}
 		
 		/*

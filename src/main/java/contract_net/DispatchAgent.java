@@ -80,14 +80,64 @@ public class DispatchAgent implements CommUser, TickListener {
 		reliability = rng.nextDouble();
 	}
 
-	/*
-	public DispatchAgent(List<VehicleAgent> potentialContractors, List<CNPMessage> messages, List<Parcel> toBeDispatchedParcel) {
-		this.potentialContractors = potentialContractors;
-		this.messages = messages;
-		this.toBeDispatchedParcels = toBeDispatchedParcels;
-		commDevice = Optional.absent();
-	}
-	 */
+	// thicklistener methods implemented
+		@Override
+		public void tick(TimeLapse timeLapse) {
+			/*
+		    if (!destination.isPresent()) {
+		      destination = Optional.of(roadModel.get().getRandomPosition(rng));
+		    }
+		    roadModel.get().moveTo(this, destination.get(), timeLapse);
+		    if (roadModel.get().getPosition(this).equals(destination.get())) {
+		      destination = Optional.absent();
+		    }
+		    
+		    */
+			
+			long currentTime = timeLapse.getTime();
+			// TODO remove AUCTION_DURATION and take care that auction stops only when dispatch agent has given an ACCEPT_PROPOSAL to a truckagent
+		    dispatchParcels(currentTime, AUCTION_DURATION);
+		
+
+
+			if (commDevice.get().getUnreadCount() > 0) {
+				lastReceiveTime = timeLapse.getStartTime();
+				unreadMessages = readMessages();
+
+				for (CNPMessage m : unreadMessages) {
+
+					switch (m.getType()) {
+
+					case REFUSE:
+						// do nothing
+						break;
+					case PROPOSE:
+						// TODO: if you work with an auction deadline, check that only proposals that arrive before the auction deadline are added
+						CNPProposalMessage mess = (CNPProposalMessage)m;
+						proposals.add(mess.getProposal());
+
+						
+						break;
+					case FAILURE:
+						// do nothing or in more advanced form of the program: rebroadcast call for proposal
+						break;
+					case INFORM_DONE:
+						// truck tells that parcel is delivered
+						// TODO: store in AuctionResult that parcel is delivered
+						break;
+					case INFORM_RESULT:
+						// receive message from truck telling that parcel is delivered and giving information about the actual travel time, travel distance, fuel level,...
+						// TODO: store this information in AuctionResult
+						// TODO: set status of Package on IS_DELIVERED if this was not yet the case
+						
+						break;
+					default:
+						break;
+					}
+				}
+				generateAuctionResults(timeLapse);
+			}
+		}
 
 	// which Parcels have to be dispatched to the different truckAgents?
 	public Collection<Parcel> getANNOUNCEDParcels(){
@@ -112,26 +162,6 @@ public class DispatchAgent implements CommUser, TickListener {
 	public VehicleState getTruckAgentState(TruckAgent truckAgent){
 		return defaultpdpmodel.getVehicleState(truckAgent);
 	}
-
-	/*
-	// get the commUser/commDevice pairs that are coupled; commModel is defined in main
-	public ImmutableBiMap<CommUser, CommDevice> getCommUserDevice(CommModel commModel){
-		ImmutableBiMap<CommUser, CommDevice> commUsersDevices= commModel.getUsersAndDevices();
-		return commUsersDevices;
-	}
-
-	// the dispatchAgent has to communicate with commUsers from the class TruckAgent
-	// this method retrieves all the TruckAgent registered to this CommModel of our Simulator
-	public ArrayList<CommUser> getTruckAgentCommUsers(CommModel commModel){
-		ImmutableBiMap<CommUser, CommDevice> commUsersDevices=getCommUserDevice(commModel);
-		// loop through BiMap and collect all CommUsers belonging to the DispatchAgent commDevice in one ArrayList
-		CommUser commUser = null;
-		for (ImmutableBiMap.Entry<CommUser, CommDevice> entryCommDevice: commUsersDevices.entrySet()) {
-			commUser = commUsersDevices.inverse().get(entryCommDevice);
-		}
-		commUsers.add(commUser);
-	}
-	*/
 
 	// if the dispatch agent wants to communicate with all other commUsers
 	// CNPMessage contains info about the Message and the ContractNetMessageType
@@ -203,64 +233,6 @@ public class DispatchAgent implements CommUser, TickListener {
 		return contents;
 	}
 
-
-	// thicklistener methods implemented
-	@Override
-	public void tick(TimeLapse timeLapse) {
-		/*
-	    if (!destination.isPresent()) {
-	      destination = Optional.of(roadModel.get().getRandomPosition(rng));
-	    }
-	    roadModel.get().moveTo(this, destination.get(), timeLapse);
-	    if (roadModel.get().getPosition(this).equals(destination.get())) {
-	      destination = Optional.absent();
-	    }
-	    
-	    */
-		
-		long currentTime = timeLapse.getTime();
-		// TODO remove AUCTION_DURATION and take care that auction stops only when dispatch agent has given an ACCEPT_PROPOSAL to a truckagent
-	    dispatchParcels(currentTime, AUCTION_DURATION);
-	
-
-
-		if (commDevice.get().getUnreadCount() > 0) {
-			lastReceiveTime = timeLapse.getStartTime();
-			unreadMessages = readMessages();
-
-			for (CNPMessage m : unreadMessages) {
-
-				switch (m.getType()) {
-
-				case REFUSE:
-					// do nothing
-					break;
-				case PROPOSE:
-					// TODO: if you work with an auction deadline, check that only proposals that arrive before the auction deadline are added
-					CNPProposalMessage mess = (CNPProposalMessage)m;
-					proposals.add(mess.getProposal());
-
-					
-					break;
-				case FAILURE:
-					// do nothing or in more advanced form of the program: rebroadcast call for proposal
-					break;
-				case INFORM_DONE:
-					// truck tells that parcel is delivered
-					// TODO: store in AuctionResult that parcel is delivered
-					break;
-				case INFORM_RESULT:
-					// receive message from truck telling that parcel is delivered and giving information about the actual travel time, travel distance, fuel level,...
-					// TODO: store this information in AuctionResult
-					// TODO: set status of Package on IS_DELIVERED if this was not yet the case
-					break;
-				default:
-					break;
-				}
-			}
-			generateAuctionResults(timeLapse);
-		}
-	}
 
 	public void generateAuctionResults(TimeLapse timeLapse){
 		bestProposal = selectBestProposal(proposals);
@@ -337,6 +309,8 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 	
 	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-		//TODO wat moet hier???
+		// TODO waarmee moet deze methode overschreven worden?
+		roadModel = Optional.of(pRoadModel);
+		pdpModel = Optional.of(pPdpModel);
 	}
 }

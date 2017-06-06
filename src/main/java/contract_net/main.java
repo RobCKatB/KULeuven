@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
@@ -32,6 +34,7 @@ import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
+import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -45,6 +48,8 @@ import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
+
+import be.kuleuven.cs.mas.GraphUtils;
 
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
@@ -118,10 +123,22 @@ public final class main {
       @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     final View.Builder view = createGui(testing, display, m, list);
-
+    
+    // TODO: we must use withCollisionAvoidance() example. This can be obtained with a dynamicGraph instead of a staticGraph
+    // however, with a dynamic graph we cannot give the map as parameter
+    /*
+    roadModel = CollisionGraphRoadModel.builder(GraphUtils.createGraph())
+            .setVehicleLength(GraphUtils.VEHICLE_LENGTH)
+            .build();
+    */
     // use map of leuven
     final Simulator simulator = Simulator.builder()
-      .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
+      .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile))          
+    		  //TODO: include collisionavoidance and deadlock
+    		  .withCollisionAvoidance()
+              .withDistanceUnit(SI.METER)
+              .withVehicleLength(VEHICLE_LENGTH)
+          	  .withMinDistance(1d))
       .addModel(DefaultPDPModel.builder())
       .addModel(CommModel.builder())
       .addModel(view)
@@ -208,11 +225,11 @@ public final class main {
         .withImageAssociation(
           Depot.class, "/graphics/perspective/tall-building-64.png")
         .withImageAssociation(
-          TruckAgent.class, "/graphics/flat/taxi-32.png")
+          TruckAgent.class, "/graphics/flat/small-truck-64.png")
         .withImageAssociation(
-          Customer.class, "/graphics/flat/person-red-32.png"))
+          Customer.class, "/graphics/perspective/deliverypackage.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))
-      .withTitleAppendix("Taxi Demo");
+      .withTitleAppendix("PDP Demo");
 
     if (testing) {
       view = view.withAutoClose()
