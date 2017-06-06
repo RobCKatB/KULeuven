@@ -242,39 +242,46 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			unreadMessages = readMessages();
 
 			for (CNPMessage m : unreadMessages) {
-				//lostContractors.clear();
+				
+				long auctionStartTime = m.getAuction().getDispatchAgent().getCurrentTime();
+				long runningTime = time.getTime();
+				
+				// auctiondeadline may not be exceeded
+				if (runningTime-auctionStartTime < m.getAuction().getDeadline()){
+					switch (m.getType()) {
 
-				switch (m.getType()) {
+					case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
+					    // TruckAgents can participate in auctions when they are IDLE (not occupied by anything else) and
+					    // if they are not charging
+						if(!isCharging && VehicleState.IDLE.equals(getPDPModel().getVehicleState(this))){
+							/// check that truck has enough capacity for the PDP task
+							doProposal(this.getPosition().get(), m.getAuction(), this);
+						} else {
+							sendFailure(m.getAuction(), ContractNetMessageType.FAILURE);
+						}
+						break;
+					case ACCEPT_PROPOSAL:
+						doPDP(m, time);
 
-				case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
-				    // TruckAgents can participate in auctions when they are IDLE (not occupied by anything else) and
-				    // if they are not charging
-					if(!isCharging && VehicleState.IDLE.equals(getPDPModel().getVehicleState(this))){
-						/// check that truck has enough capacity for the PDP task
-						doProposal(this.getPosition().get(), m.getAuction(), this);
-					} else {
-						sendFailure(m.getAuction(), ContractNetMessageType.FAILURE);
+						/*
+						// TODO: add accepted proposal to a List of all accepted proposals for this TruckAgent
+						 * CNPAcceptMessage cnpAccept = (CNPAcceptMessage)m;
+						 * acceptedProposals.add(cnpAccept.getProposal());
+						 * not right since this does not store all acceptedProposals for one TruckAgent, it just stores the acceptedProposal for this auction
+						 */
+
+						break;
+					case REJECT_PROPOSAL:
+						// do nothing. The TruckAgent did not win the Auction for a certain package, so currently no tasks for the truck
+						break;
+					default:
+						break;
 					}
-					break;
-				case ACCEPT_PROPOSAL:
-					doPDP(m, time);
-
-					/*
-					// TODO: add accepted proposal to a List of all accepted proposals for this TruckAgent
-					 * CNPAcceptMessage cnpAccept = (CNPAcceptMessage)m;
-					 * acceptedProposals.add(cnpAccept.getProposal());
-					 * not right since this does not store all acceptedProposals for one TruckAgent, it just stores the acceptedProposal for this auction
-					 */
-
-					break;
-				case REJECT_PROPOSAL:
-					// do nothing. The TruckAgent did not win the Auction for a certain package, so currently no tasks for the truck
-					break;
-				default:
-					break;
+				} else {
+					//stop auction when auction deadline has passed
+					m.getAuction().setActiveAuction(false);
 				}
 			}
-
 		}
 		}
 
@@ -354,7 +361,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public long calculateTravelTimePDP(Point currentTruckPosition, Parcel parcel){
 			double shortestDistance = calculatePDPDistance(currentTruckPosition, parcel);
 			long time = (long) (shortestDistance/SPEED);
-			/// somehow we need to change the value of serviceDuration(SERVICE_DURATION), or we have to remove this from the main
+			// TODO?? somehow we need to change the value of serviceDuration(SERVICE_DURATION), or we have to remove this from the main
 			return time;
 		}
 			
@@ -404,6 +411,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// TODO: check whether the truck has enough capacity to load the parcel
 			Proposal proposal = new Proposal(auction, proposer, timeCostBid);
 			// TODO: methode closestChargingStation() schrijven om dichtste chargingStation te vinden, die een object van het type ChargingStation teruggeeft
+			// inspiratie zoeken in taxi example waar ze closest object zoeken via roadmodel
 			// TODO: in more advanced version of the program with a certain delivery time for a parcel:
 			// if currentTime is larger than the desired delivery time for the parcel, send no proposal
 			

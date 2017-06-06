@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.LoggerFactory;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
@@ -55,6 +57,7 @@ public class DispatchAgent implements CommUser, TickListener {
 	private int numberOfreceivedMessages = 0;
 	private AuctionResult auctionResult;
 	private List<AuctionResult> auctionResults;
+	private long currentTime;
 
 	//record the agent responsible for the best proposal
 	private Optional<CommDevice> commDevice;
@@ -94,14 +97,10 @@ public class DispatchAgent implements CommUser, TickListener {
 		    
 		    */
 			
-			long currentTime = timeLapse.getTime();
-			// TODO remove AUCTION_DURATION and take care that auction stops only when dispatch agent has given an ACCEPT_PROPOSAL to a truckagent
-		    dispatchParcels(currentTime, AUCTION_DURATION);
+			currentTime = timeLapse.getTime();
+			dispatchParcels(currentTime, AUCTION_DURATION);
 		
-
-
 			if (commDevice.get().getUnreadCount() > 0) {
-				lastReceiveTime = timeLapse.getStartTime();
 				unreadMessages = readMessages();
 
 				for (CNPMessage m : unreadMessages) {
@@ -180,9 +179,8 @@ public class DispatchAgent implements CommUser, TickListener {
 		device.send(content, recipient);
 	}
 
-	public void sendCallForProposals(Parcel parcel, long currentTime, long AUCTION_DURATION){
+	public void sendCallForProposals(Auction auction, Parcel parcel, long currentTime, long AUCTION_DURATION){
 		ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
-		Auction auction = new Auction(this, parcel, currentTime + AUCTION_DURATION, currentTime, false);
 		CNPMessage cnpMessage = new CNPMessage(auction, type, this);
 		sendBroadcastMessage(cnpMessage);
 	}
@@ -193,7 +191,7 @@ public class DispatchAgent implements CommUser, TickListener {
 		if(!toBeDispatchedParcels.isEmpty()){
 			for(Parcel p: toBeDispatchedParcels){
 				Auction auction = new Auction(this, p, currentTime, AUCTION_DURATION, true);
-				sendCallForProposals(p, currentTime, AUCTION_DURATION);
+				sendCallForProposals(auction, p, currentTime, AUCTION_DURATION);
 			}
 		}
 	}
@@ -240,7 +238,6 @@ public class DispatchAgent implements CommUser, TickListener {
 			sendAcceptProposal(bestProposal.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL);
 			// stop this auction. In a more advanced model of the algorithm, you can decide to stop the auction only when 
 			// the truck has actually delivered the parcel and the INFORM_DONE message is sent
-			bestProposal.getAuction().setActiveAuction(false);
 			auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), timeLapse.getTime());
 			auctionResults.add(auctionResult);
 			/// change ParcelState
@@ -313,4 +310,14 @@ public class DispatchAgent implements CommUser, TickListener {
 		roadModel = Optional.of(pRoadModel);
 		pdpModel = Optional.of(pPdpModel);
 	}
+
+	public long getCurrentTime() {
+		return currentTime;
+	}
+
+	public void setCurrentTime(long currentTime) {
+		this.currentTime = currentTime;
+	}
+	
+	
 }
