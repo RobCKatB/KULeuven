@@ -43,7 +43,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	private Point startPosition;
     private double energy;
     private List<Proposal> proposals = new ArrayList<Proposal>();
-    private boolean isCharging;
+
     private List<CNPMessage> unreadMessages;
 	private DefaultPDPModel defaultpdpmodel;
     private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
@@ -59,7 +59,13 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	  static final long LONELINESS_THRESHOLD = 10 * 1000;
 	  private final RandomGenerator rng;
 
-	
+	// state of TruckAgent
+	    private boolean isCharging;
+	    private boolean isIdle;
+	    private boolean isMoving;
+	    private boolean isPickingUp;
+	    private boolean isDelivering;
+	  
 	public TruckAgent(DefaultPDPModel defaultpdpmodel, Point startPosition, int capacity, RandomGenerator rng){
 		super(VehicleDTO.builder()
 			      .capacity(capacity)
@@ -76,6 +82,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		commDevice = Optional.absent();
 		// when you create a new TruckAgent, he is full of charge
 		isCharging = false;
+		isIdle = true;
+		isPickingUp = false;
+		isDelivering = false;
+		isMoving = false;
 
 	}
 
@@ -111,7 +121,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
 				    // TruckAgents can participate in auctions when they are IDLE (not occupied by anything else) and
 				    // if they are not charging
-					if(!isCharging && VehicleState.IDLE.equals(getPDPModel().getVehicleState(this))){
+					//// KB: replaced VehicleState.IDLE.equals(getPDPModel().getVehicleState(this)) by isIdle
+					if(!isCharging && isIdle){
 						/// check that truck has enough capacity for the PDP task
 						doProposal(this.getPosition().get(), m.getAuction(), this, time);
 					} else {
@@ -152,60 +163,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void setProposals(List<Proposal> proposals) {
 			this.proposals = proposals;
 		}
-/*
-		public void bidCFP(CNPMessage m, Bid bid){};
-		public void declineCFP(CNPMessage m, CNPMessage reaction){};
-		public void load(Parcel p){
-			if (ParcelState.AVAILABLE)
-				ParcelState.PICKING_UP;
-				pdpModel.pickup(this, p, time);
-		};
-		public void unload(Parcel p){
-			pdpModel.drop(vehicle, p, time);
-			ParcelState.DELIVERED;
-		};
-		public void move(Parcel p, Location l){
-			pdpModel.service(vehicle, p, time);
-			ParcelState.DELIVERING
-		}
-		
-		// parcel pickup and delivery
-		protected void tickImpl(TimeLapse time) {
-		    final RoadModel rm = getRoadModel();
-		    final PDPModel pm = getPDPModel();
-
-		    if (!time.hasTimeLeft()) {
-		      return;
-		    }
-		    if (!curr.isPresent()) {
-		      curr = Optional.fromNullable(RoadModels.findClosestObject(
-		        rm.getPosition(this), rm, Parcel.class));
-		    }
-
-		    if (curr.isPresent()) {
-		      final boolean inCargo = pm.containerContains(this, curr.get());
-		      // sanity check: if it is not in our cargo AND it is also not on the
-		      // RoadModel, we cannot go to curr anymore.
-		      if (!inCargo && !rm.containsObject(curr.get())) {
-		        curr = Optional.absent();
-		      } else if (inCargo) {
-		        // if it is in cargo, go to its destination
-		        rm.moveTo(this, curr.get().getDeliveryLocation(), time);
-		        if (rm.getPosition(this).equals(curr.get().getDeliveryLocation())) {
-		          // deliver when we arrive
-		          pm.deliver(this, curr.get(), time);
-		        }
-		      } else {
-		        // it is still available, go there as fast as possible
-		        rm.moveTo(this, curr.get(), time);
-		        if (rm.equalPosition(this, curr.get())) {
-		          // pickup parcel
-		          pm.pickup(this, curr.get(), time);
-		        }
-		      }
-		    }
-		}
-		
 
 
 		/* 
@@ -342,7 +299,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
 				// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
-				proposals.add(proposal);
+				proposals.add(proposal);//TruckAgent stays Idle while in auction, so he can participate in other auctions
 				// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 				sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
@@ -350,35 +307,42 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				// the truck can participate in other auctions in the meantime
 			} else {
 				//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
-				s = VehicleState.CHARGING;
-				sendRefusal(auction, s);
+				isIdle = false;
+				isCharging = true;
+				sendRefusal(auction, "truck is charging");
 				//TODO: go to charging station
 			}
 
 		}
 		
 		public void doPDP(CNPMessage m, TimeLapse time){
-			defaultpdpmodel.service(this, m.getAuction().getParcel(), time); // calls deliver and pickup methods
-			//TODO make this work
+			isIdle = false;
 			//move from current position to parcel 
 			roadModel.get().moveTo(this, m.getAuction().getParcel().getPickupLocation(), time);
+			isMoving = true;
 			//TODO decrease fuel level while moving from current position to parcel pickup position: make method similar to calculateEnergyConsumtionToChargingStation to calculate energy consumption, then reduce energy stock
 			// pickup parcel
+			isMoving = false;
+			isPickingUp = true;
 			long pickupTime = time.getTime();
 			defaultpdpmodel.pickup(this, m.getAuction().getParcel(), time); // status of parcel will be changed to PICKING_UP
 			// TODO??? wachten tot pickup klaar is: zit eigenlijk in continuePreviousActions
 			// move from parcel pickup to parcel delivery location
+			isPickingUp = false;
+			// TODO parcel.isPickedUp=true
 			roadModel.get().moveTo((MovingRoadUser)m.getAuction().getParcel().getPickupLocation(), m.getAuction().getParcel().getDeliveryLocation(), time);
+			isMoving=true;
 			//TODO decrease fuel level
 			long deliveryTime = time.getTime();
+			isMoving = false;
 			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
+			isDelivering = true;
+			//TODO parcel.isDelivered = true
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
 			// TODO??? wachten tot deliver klaar is: zit eigenlijk in continuePreviousActions
-			// TODO after delivering, change ParcelState.DELIVERED; and VehicleState.IDLE
-
-	
+			// TODO after delivering, change ParcelState.DELIVERED; and VehicleState.IDLE. Vooral VehicleState.IDLE is belangrijk anders can truck volgende opdracht niet uitvoeren
 			//defaultpdpmodel.continuePreviousActions(this, time); //sets status of Parcel on DELIVERED, but is protected so cannot be used
-			// TODO change parcel state to DELIVERED if that was not yet done ParcelState.DELIVERED;
+
 			// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
 			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
 			sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime);
@@ -390,8 +354,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		/*
 		 * send messages from TruckAgent to DispatchAgent
 		 */
-		public void sendRefusal(Auction auction, VehicleState s, TimeLapse timeLapse){
-			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), s.toString(), timeLapse.getTime());
+		public void sendRefusal(Auction auction, String refusalReason, TimeLapse timeLapse){
+			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), refusalReason, timeLapse.getTime());
 			sendDirectMessage(cnpRefusalMessage, auction.getSenderAuction());	
 		}
 		
