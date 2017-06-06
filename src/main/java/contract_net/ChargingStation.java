@@ -7,10 +7,12 @@ import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.core.model.time.TickListener;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
-public class ChargingStation implements CommUser, RoadUser{
+public class ChargingStation implements CommUser, RoadUser, TickListener{
 	
 	private Optional<RoadModel> roadModel;
 	private Point startPosition;
@@ -44,26 +46,25 @@ public class ChargingStation implements CommUser, RoadUser{
 
 	}
 	
-	public void dock(TruckAgent truck){
-		if(checkTruckPosition(truck)){
+	/**
+	 * Dock a truck in this charging station.
+	 * 
+	 * @param truck
+	 * 			The truck to be docked.
+	 * @return
+	 * 			True if success, false otherwise.
+	 */
+	public boolean tryDock(TruckAgent truck){
+		if(!this.isBusy() && checkTruckPosition(truck)){
 			dockedVehicle = Optional.of(truck);
+			return true;
+		}else{
+			return false;
 		}
 	}
 	
 	public void unDock(){
 		dockedVehicle = Optional.absent();
-	}
-	
-	public void chargeBattery(TruckAgent truck){
-		if(dockedVehicle.isPresent()){
-			if(checkTruckPosition(truck)){
-				dockedVehicle.get().charge(this.POWER);
-			}else{
-				System.out.println("Truck drove away without undocking!");
-				unDock();
-			}
-		}
-		// TODO: some logging here?
 	}
 
 	@Override
@@ -84,6 +85,31 @@ public class ChargingStation implements CommUser, RoadUser{
 	public void initRoadUser(RoadModel model) {
 		this.roadModel = Optional.of(model);
 		this.roadModel.get().addObjectAt(this, startPosition);
+	}
+
+	@Override
+	public void tick(TimeLapse timeLapse) {
+		if(dockedVehicle.isPresent()){
+			if(checkTruckPosition(dockedVehicle.get())){
+				dockedVehicle.get().charge(this.POWER*timeLapse.getTickLength());
+			}else{
+				System.out.println("Truck drove away without undocking!");
+				unDock();
+			}
+		}
+	}
+
+	@Override
+	public void afterTick(TimeLapse timeLapse) {}
+	
+	@Override
+	public String toString() {
+		 return new StringBuilder("CharigingStation [")
+		.append(this.getPosition().get())
+		.append(",")
+		.append(dockedVehicle.get())
+		.append("]")
+		    .toString();
 	}
 
 }

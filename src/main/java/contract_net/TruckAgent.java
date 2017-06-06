@@ -7,8 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
@@ -33,8 +33,8 @@ import com.google.common.math.DoubleMath;
 
 
 public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
-	private static final Logger LOGGER = LoggerFactory
-			    .getLogger(RouteFollowingVehicle.class);
+//	private static final Logger LOGGER = LoggerFactory
+//			    .getLogger(RouteFollowingVehicle.class);
 	private Queue<Point> path;
 	private Optional<CommDevice> commDevice;
 	private Optional<RoadModel> roadModel;
@@ -65,6 +65,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	    private boolean isMoving;
 	    private boolean isPickingUp;
 	    private boolean isDelivering;
+	    
+	private Optional<ChargingStation> chargingStation = Optional.absent();
 	  
 	public TruckAgent(DefaultPDPModel defaultpdpmodel, Point startPosition, int capacity, RandomGenerator rng){
 		super(VehicleDTO.builder()
@@ -170,11 +172,32 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		 */
 		public void charge(double amount){
 			this.energy = Math.max(this.energy+amount, ENERGYCAPACITY);
+			if(this.energy >= ENERGYCAPACITY){
+				this.chargingStation.get().unDock();
+				this.isCharging = false;
+			}
 		}
 		
-		// TODO: Robbert: methode schrijven om te checken hoeveel energie de Truck nog over heeft
-		public double checkEnergyLevel(){
-			return 10.0;
+		public double getEnergy(){
+			return this.energy;
+		}
+		
+		private ChargingStation getClosestChargingstation(Point currentTruckPosition){
+			
+			ArrayList<ChargingStation> AllCharingStations = (ArrayList<ChargingStation>) getRoadModel().getObjectsOfType(ChargingStation.class);
+			
+			double shortestDistance = Double.POSITIVE_INFINITY;
+			ChargingStation closestCharingStation = null;
+			
+			for (ChargingStation chargingStation : AllCharingStations) {
+				double distance = calculatePointToPointDistance(currentTruckPosition, chargingStation.getPosition().get());
+				if(distance < shortestDistance){
+					shortestDistance = distance;
+					closestCharingStation = chargingStation;
+				}
+			}
+			
+			return closestCharingStation;
 		}
 		
 		/*
@@ -200,7 +223,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		 * after the task has finished (at least if fuel level is low after the PDP task has finished)
 		 */
 		public boolean enoughEnergy(Point currTruckPosition, Parcel parcel, ChargingStation chargingStation){
-			if (calculateEnergyConsumptionTask(currTruckPosition, parcel) + calculateEnergyConsumtionToChargingStation(parcel, chargingStation) >  energy){
+			if (calculateEnergyConsumptionTask(currTruckPosition, parcel) + calculateEnergyConsumtionToChargingStation(parcel, chargingStation) >=  energy){
 				return true;
 			}
 			else {
@@ -296,6 +319,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// if currentTime is larger than the desired delivery time for the parcel, send no proposal
 			
 			// check whether there is enough energy to travel this distance, and only then do Proposal, otherwise send REFUSE
+			ChargingStation closestChargingStation = getClosestChargingstation(currentTruckPosition);
 			if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
 				// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
@@ -309,8 +333,13 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
 				isIdle = false;
 				isCharging = true;
-				sendRefusal(auction, "truck is charging");
-				//TODO: go to charging station
+				sendRefusal(auction, "truck is charging", timelapse);
+				roadModel.get().moveTo(this, closestChargingStation.getPosition().get(), timelapse);
+				// TODO: after that
+				boolean success = closestChargingStation.tryDock(this);
+				if(!success){
+					// TODO: try again next tick
+				}
 			}
 
 		}
@@ -409,5 +438,35 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void setCharging(boolean isCharging) {
 			this.isCharging = isCharging;
 		}
+		
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder("Truck [");
+				
+		builder.append(this.getPosition().get()).append(",");
+		
+		
+		if(this.isCharging){
+			builder.append("charging,");
+		}
+		if(this.isDelivering){
+			builder.append("delivering,");
+		}
+		if(this.isIdle){
+			builder.append("idle,");
+		}
+		if(this.isMoving){
+			builder.append("moving,");
+		}
+		if(this.isPickingUp){
+			builder.append("moving,");
+		}
+		
+		builder.append("energy: ").append(this.energy);
+		
+		builder.append("]");
+			  
+		return builder.toString();
+	}
 		
 }
