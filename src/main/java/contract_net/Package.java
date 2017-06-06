@@ -3,6 +3,7 @@ package contract_net;
 
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 
@@ -14,8 +15,19 @@ public class Package extends Parcel{
 	 *          of a parcel.
 	 */
 	
-	public Package(ParcelDTO parcelDto) {
+	private boolean isAnnounced;
+	private boolean isAvailable;
+	private boolean isDelivered;
+	private boolean isDelivering;
+	private boolean in_cargo;
+	private boolean picking_up;
+	private boolean picked_up;
+	private ParcelStateExtended state;
+	private DefaultPDPModel defaultpdpmodel;
+	
+	public Package(ParcelDTO parcelDto, ParcelStateExtended state, DefaultPDPModel defaultpdpmodel) {
 		this(parcelDto, null);
+		state = defaultpdpmodel.getParcelState(parcelDto);
 	}
 
 	public Package(ParcelDTO parcelDto, @Nullable  String toString) {

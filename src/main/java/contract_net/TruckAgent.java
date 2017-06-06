@@ -372,8 +372,12 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
 			// TODO??? wachten tot deliver klaar is: zit eigenlijk in continuePreviousActions
 			// TODO after delivering, change ParcelState.DELIVERED; and VehicleState.IDLE. Vooral VehicleState.IDLE is belangrijk anders can truck volgende opdracht niet uitvoeren
-			//defaultpdpmodel.continuePreviousActions(this, time); //sets status of Parcel on DELIVERED, but is protected so cannot be used
-
+			//defaultpdpmodel.continuePreviousActions(this, time); // continues with task if it is not finished in previous tick, but we cannot access it since it is protected
+			ParcelState s = defaultpdpmodel.getParcelState(m.getAuction().getParcel());
+			s.isDelivered();
+			
+			defaultpdpmodel.continuePreviousActions()
+			
 			// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
 			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
 			sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime);

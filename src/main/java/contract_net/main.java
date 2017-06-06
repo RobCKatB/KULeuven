@@ -79,7 +79,7 @@ public final class main {
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
     newHashMap();
-
+  
   private static final long TEST_STOP_TIME = 20 * 60 * 1000;
   private static final int TEST_SPEED_UP = 64;
   
@@ -175,13 +175,13 @@ public final class main {
 
     //// or use ParcelGenerator class
     for (int i = 0; i < NUM_PARCELS; i++) {
-    	Parcel p = new Customer(
-    	        Parcel.builder(roadModel.getRandomPosition(rng),
-    	                roadModel.getRandomPosition(rng))
-    	                .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
-    	                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
-    	                .buildDTO());
-      simulator.register(p);
+      simulator.register(new Customer(
+  	        Parcel.builder(roadModel.getRandomPosition(rng),
+	                roadModel.getRandomPosition(rng))
+	                .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
+	                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
+	                .buildDTO()));
+
 
     }
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
