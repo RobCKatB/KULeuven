@@ -332,7 +332,7 @@ public class DispatchAgent implements CommUser, TickListener {
 				
 		builder
 		.append("num parcels: ")
-		.append(toBeDispatchedParcels.size())
+		.append(toBeDispatchedParcels.size());
 		
 		
 		

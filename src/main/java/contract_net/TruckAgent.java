@@ -200,13 +200,16 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			return closestCharingStation;
 		}
 		
+		public double calculateEnergyConsumption(double distance){
+			return distance * ENERGYCONSUMPTION;
+		}
+		
 		/*
 		 * method to calculate how much energy is needed for the PDP task
 		 */
 		public double calculateEnergyConsumptionTask(Point currTruckPosition, Parcel parcel){
 			double distance = calculatePDPDistance(currTruckPosition, parcel);
-			double consumption = distance * ENERGYCONSUMPTION;
-			return consumption;
+			return calculateEnergyConsumption(distance);
 		}
 		
 		/*
@@ -214,8 +217,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		 */
 		public double calculateEnergyConsumtionToChargingStation(Parcel parcel, ChargingStation chargingStation){
 			double distance = calculatePointToPointDistance(parcel.getDeliveryLocation(), chargingStation.getPosition().get());
-			double consumption = distance * ENERGYCONSUMPTION;
-			return consumption;
+			return calculateEnergyConsumption(distance);
 		}
 
 		/*
@@ -347,9 +349,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void doPDP(CNPMessage m, TimeLapse time){
 			isIdle = false;
 			//move from current position to parcel 
-			roadModel.get().moveTo(this, m.getAuction().getParcel().getPickupLocation(), time);
+			MoveProgress progress = roadModel.get().moveTo(this, m.getAuction().getParcel().getPickupLocation(), time);
 			isMoving = true;
-			//TODO decrease fuel level while moving from current position to parcel pickup position: make method similar to calculateEnergyConsumtionToChargingStation to calculate energy consumption, then reduce energy stock
+			consumeEnergy(calculateEnergyConsumption(progress.distance().getValue()));
 			// pickup parcel
 			isMoving = false;
 			isPickingUp = true;
