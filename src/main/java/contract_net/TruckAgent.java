@@ -182,6 +182,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			return this.energy;
 		}
 		
+		private void consumeEnergy(double consumed){
+			this.energy -= consumed;
+		}
+		
 		private ChargingStation getClosestChargingstation(Point currentTruckPosition){
 			
 			ArrayList<ChargingStation> AllCharingStations = (ArrayList<ChargingStation>) getRoadModel().getObjectsOfType(ChargingStation.class);
