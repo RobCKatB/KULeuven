@@ -28,13 +28,17 @@ public class AuctionResult {
 	List<CNPMessage> failures;
 	List<CNPMessage> inform_done; // message from TruckAgent to DispatchAgent that the PDP task is completed
 	List<CNPMessage> inform_result; // message from TruckAgent to DispatchAgent that the PDP task is completed with some results (e.g. PDP time needed, ...)
-	TruckAgent winner;
+	private TruckAgent winner;
+	long timePickupDelivery;
+	long timeCFPDelivery;
 	
-	public AuctionResult(Auction auction, Proposal bestProposal, TruckAgent winner, long auctionDuration, List<Proposal> rejectedProposals){
+	public AuctionResult(Auction auction, Proposal bestProposal, TruckAgent winner, long auctionDuration, long timePickupDelivery, long timeCFPDelivery, List<Proposal> rejectedProposals){
 		this.auction = auction;
 		this.winner = winner;
 		this.auctionDuration = auctionDuration;
 		this.rejectedProposals = rejectedProposals;
+		this.timePickupDelivery = timePickupDelivery;
+		this.timeCFPDelivery = timeCFPDelivery;
 	}
 
 	public Auction getAuction() {
@@ -68,4 +72,21 @@ public class AuctionResult {
 	public void setBestProposal(Proposal bestProposal) {
 		this.bestProposal = bestProposal;
 	}
+
+	public long getTimePickupDelivery() {
+		return timePickupDelivery;
+	}
+
+	public void setTimePickupDelivery(long timePickupDelivery) {
+		this.timePickupDelivery = timePickupDelivery;
+	}
+
+	public long getTimeCFPDelivery() {
+		return timeCFPDelivery;
+	}
+
+	public void setTimeCFPDelivery(long timeCFPDelivery) {
+		this.timeCFPDelivery = timeCFPDelivery;
+	}
+	
 }

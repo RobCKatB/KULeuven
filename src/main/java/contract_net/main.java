@@ -19,6 +19,7 @@ package contract_net;
 import static com.google.common.collect.Maps.newHashMap;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -81,7 +82,7 @@ public final class main {
 
   private static final long TEST_STOP_TIME = 20 * 60 * 1000;
   private static final int TEST_SPEED_UP = 64;
-
+  
   private main() {}
  
 
@@ -132,17 +133,18 @@ public final class main {
             .build();
     */
     // use map of leuven
+	  //TODO: include collisionavoidance and deadlock
+	  /*
+	  .withCollisionAvoidance()
+    .withDistanceUnit(SI.METER)
+    .withVehicleLength(VEHICLE_LENGTH)
+	  .withMinDistance(1d))*/
     final Simulator simulator = Simulator.builder()
-      .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile))          
-    		  //TODO: include collisionavoidance and deadlock
-    		  .withCollisionAvoidance()
-              .withDistanceUnit(SI.METER)
-              .withVehicleLength(VEHICLE_LENGTH)
-          	  .withMinDistance(1d))
-      .addModel(DefaultPDPModel.builder())
-      .addModel(CommModel.builder())
-      .addModel(view)
-      .build();
+    	      .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
+    	      .addModel(DefaultPDPModel.builder())
+    	      .addModel(CommModel.builder())
+    	      .addModel(view)
+    	      .build();
     final RandomGenerator rng = simulator.getRandomGenerator();
     final PDPModel pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
     final DefaultPDPModel defaultpdpmodel = simulator.getModelProvider().getModel(DefaultPDPModel.class);
@@ -173,12 +175,14 @@ public final class main {
 
     //// or use ParcelGenerator class
     for (int i = 0; i < NUM_PARCELS; i++) {
-      simulator.register(new Customer(
-        Parcel.builder(roadModel.getRandomPosition(rng),
-          roadModel.getRandomPosition(rng))
-          .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
-          .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
-          .buildDTO()));
+    	Parcel p = new Customer(
+    	        Parcel.builder(roadModel.getRandomPosition(rng),
+    	                roadModel.getRandomPosition(rng))
+    	                .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
+    	                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
+    	                .buildDTO());
+      simulator.register(p);
+
     }
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
     	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), rng);

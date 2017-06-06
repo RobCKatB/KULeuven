@@ -346,6 +346,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
 			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
 			sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime);
+			//update AuctionResult class with calculated PDP times
+			AuctionResult auctionresult = m.getAuction().getDispatchAgent().getAuctionResult();
+			auctionresult.setTimeCFPDelivery(deliveryTime - pickupTime);
+			auctionresult.setTimePickupDelivery(deliveryTime - m.getAuction().getStartTime());
 
 			//TODO when PDP is finished, check whether there is still more energy than the energy needed to go to the charging station
 			// it there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to TO_CHARGING
