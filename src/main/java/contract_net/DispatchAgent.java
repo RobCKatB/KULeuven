@@ -316,6 +316,8 @@ public class DispatchAgent implements CommUser, TickListener {
 	
 	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
 		// TODO waarmee moet deze methode overschreven worden?
+		//TODO we moeten nog ergens zorgen dat we een CollisionGraphRoadModel hebben, zie opdracht
+		
 		roadModel = Optional.of(pRoadModel);
 		pdpModel = Optional.of(pPdpModel);
 	}

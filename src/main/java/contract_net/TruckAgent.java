@@ -249,9 +249,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 					    // if they are not charging
 						if(!isCharging && VehicleState.IDLE.equals(getPDPModel().getVehicleState(this))){
 							/// check that truck has enough capacity for the PDP task
-							doProposal(this.getPosition().get(), m.getAuction(), this);
+							doProposal(this.getPosition().get(), m.getAuction(), this, time);
 						} else {
-							sendFailure(m.getAuction(), ContractNetMessageType.FAILURE);
+							sendFailure(m.getAuction(), ContractNetMessageType.FAILURE, time);
 						}
 						break;
 					case ACCEPT_PROPOSAL:
@@ -273,7 +273,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 					}
 				} 
 			}
-		}
 		}
 
 		/* 
@@ -397,7 +396,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		}
 			
 		
-		public void doProposal(Point currentTruckPosition, Auction auction, TruckAgent proposer){
+		public void doProposal(Point currentTruckPosition, Auction auction, TruckAgent proposer, TimeLapse timelapse){
 			long timeCostBid = calculateTravelTimePDP(currentTruckPosition, auction.getParcel());
 			// TODO: check whether the truck has enough capacity to load the parcel
 			Proposal proposal = new Proposal(auction, proposer, timeCostBid);
@@ -412,7 +411,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 				proposals.add(proposal);
 				// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
-				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent());
+				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 				sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
 				// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
 				// the truck can participate in other auctions in the meantime
@@ -440,7 +439,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			defaultpdpmodel.continuePreviousActions(this, time); //sets status of Parcel on DELIVERED
 			//TODO change vehicle state back to IDLE when parcel got status DELIVERED
 			//TODO send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
-			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE);
+			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
 			// TODO: sendInformResult (first make method) and make class CNPInformResultMessage class extending CNPMessage, with extra parameter in constructor storing real travel time (and residual fuel level)
 			// TODO change parcel state to DELIVERED if that was not yet done
 			ParcelState.DELIVERED;
@@ -449,6 +448,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// it there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to TO_CHARGING
 		}
 		
+		/*
 		///// uit oude Rinsim
 		private LinkedList<Point> getPath() {
 			LinkedList<Point> path = null;
@@ -489,23 +489,24 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			return path;
 		}
 		
+		*/
 		/*
 		 * send messages from TruckAgent to DispatchAgent
 		 */
-		public void sendRefusal(Auction auction, VehicleState s){
-			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), s.toString());
+		public void sendRefusal(Auction auction, VehicleState s, TimeLapse timeLapse){
+			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), s.toString(), timeLapse.getTime());
 			sendDirectMessage(cnpRefusalMessage, auction.getSenderAuction());	
 		}
 		
-		public void sendFailure(Auction auction, ContractNetMessageType t){
-			CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, t, this, auction.getSenderAuction(), t.toString());
+		public void sendFailure(Auction auction, ContractNetMessageType t, TimeLapse timeLapse){
+			CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, t, this, auction.getSenderAuction(), t.toString(), timeLapse.getTime());
 			sendDirectMessage(cnpFailureMessage, auction.getSenderAuction());
 		}
 
 
 		
-		public void sendInformDone(Auction auction, ContractNetMessageType type){
-			CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getSenderAuction());
+		public void sendInformDone(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
+			CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getSenderAuction(), timeLapse.getTime());
 			sendDirectMessage(cnpInformDoneMessage, auction.getSenderAuction());	
 		}
 
