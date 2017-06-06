@@ -45,7 +45,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
     private List<Proposal> proposals = new ArrayList<Proposal>();
     private boolean isCharging;
     private List<CNPMessage> unreadMessages;
-	private long lastReceiveTime;
 	private DefaultPDPModel defaultpdpmodel;
     private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
 	private static final double SPEED = 1000d;
@@ -208,71 +207,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		}
 		
 
-		@Override
-		public void tick(long currentTime, long timeStep) {
-
-			handleIncomingMessages(mailbox.getMessages());
-
-			// Drive when possible
-			if (targetedPackage != null) {
-				if (!path.isEmpty()) {
-					truck.drive(path, timeStep);
-				} else {
-					if (targetedPackage.needsPickUp())
-						pickUpAndGo();
-					else
-						deliver();
-				}
-			}
-		}
-		
-		
-		*/
-		
-		// uit oude rinsim
-		/*
-		private void handleMessages(long currentTime) {
-			Queue<Message> messages = mailbox.getMessages();
-			for (Message message : messages) {
-				if (message instanceof CNetMessage) {
-					handleCNet((CNetMessage) message, currentTime);
-				}
-			}
-		}
-
-		private void handleCNet(CNetMessage message, long currentTime) {
-			if (message instanceof CallForProposals) {
-				eDisp.dispatchEvent(new Event(EventType.CFPReceived, this));
-				CallForProposals cfp = (CallForProposals) message;
-				Proposal p = null;
-				if (proposal == null) {
-					p = createBestProposal(cfp, currentTime);
-				} else if (currentTime > proposal.getDeliveryTime()) {
-					proposal = null;
-				}
-				if (p != null) {
-					proposal = p;
-					eDisp.dispatchEvent(new Event(EventType.ProposalSent, this));
-					communicationAPI.send(cfp.getSender(), p);
-				} else {
-					Refusal ref = new Refusal(this, cfp);
-					eDisp.dispatchEvent(new Event(EventType.RefusalSent, this));
-					communicationAPI.send(cfp.getSender(), ref);
-					
-				}
-			}
-			if (message instanceof AcceptProposal) {
-				eDisp.dispatchEvent(new Event(EventType.AcceptProposalReceived, this));
-				AcceptProposal ap = (AcceptProposal) message;
-				reorderPlannedTasks(ap, currentTime);
-			}
-			if (message.isResponseTo(proposal)) {
-				proposal = null;
-			}
-		}
-		
-		*/
-		
 
 		/* 
 		 * charging station
@@ -434,13 +368,14 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			defaultpdpmodel.pickup(this, m.getAuction().getParcel(), time); // status of parcel will be changed to PICKING_UP
 			// TODO??? wachten tot pickup klaar is: zit eigenlijk in continuePreviousActions
 			// move from parcel pickup to parcel delivery location
-			roadModel.get().moveTo(m.getAuction().getParcel().getPickupLocation(), m.getAuction().getParcel().getDeliveryLocation(), time);
+			roadModel.get().moveTo((MovingRoadUser)m.getAuction().getParcel().getPickupLocation(), m.getAuction().getParcel().getDeliveryLocation(), time);
 			//TODO decrease fuel level
 			long deliveryTime = time.getTime();
 			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
 			// TODO??? wachten tot deliver klaar is: zit eigenlijk in continuePreviousActions
 			// TODO after delivering, change ParcelState.DELIVERED; and VehicleState.IDLE
+
 	
 			//defaultpdpmodel.continuePreviousActions(this, time); //sets status of Parcel on DELIVERED, but is protected so cannot be used
 			// TODO change parcel state to DELIVERED if that was not yet done ParcelState.DELIVERED;
@@ -492,5 +427,19 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void setAcceptedProposals(List<Proposal> acceptedProposals) {
 			this.acceptedProposals = acceptedProposals;
 		}
- 
+
+
+
+
+		public boolean isCharging() {
+			return isCharging;
+		}
+
+
+
+
+		public void setCharging(boolean isCharging) {
+			this.isCharging = isCharging;
+		}
+		
 }
