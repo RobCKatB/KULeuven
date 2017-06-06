@@ -13,13 +13,15 @@ public class CNPMessage implements MessageContents {
 	private Auction auction; // parcel to be picked up by a Truck, auction initiated by DispatchAgent
 	private Optional<CommDevice> commDevice;
 	private CommUser sender;
+	private long timeSent;
 
 	// or Auction instead of Parcel as parameter for constructor?
-	public CNPMessage(Auction auction, ContractNetMessageType type, CommUser sender){
+	public CNPMessage(Auction auction, ContractNetMessageType type, CommUser sender, long timeSent){
 		commDevice = Optional.absent(); // commDevice contains unreadMessages and outbox
 		this.auction = auction;
 		this.type = type;
 		this.sender = sender;
+		this.timeSent = timeSent;
 	}
 	
 	
@@ -89,6 +91,16 @@ public class CNPMessage implements MessageContents {
 
 	Predicate<CommUser> predicate() {
 		return null;
+	}
+
+
+	public long getTimeSent() {
+		return timeSent;
+	}
+
+
+	public void setTimeSent(long timeSent) {
+		this.timeSent = timeSent;
 	}
 
 }

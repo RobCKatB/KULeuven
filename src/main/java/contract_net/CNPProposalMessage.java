@@ -10,9 +10,10 @@ public class CNPProposalMessage extends CNPMessage {
 	private Proposal proposal;
 	private CommUser sender;
 	private CommUser receiver;
+	private long timeSent;
 
-	public CNPProposalMessage(Auction auction, ContractNetMessageType type, Proposal proposal, CommUser sender, CommUser receiver) {
-		super(auction, type, sender);
+	public CNPProposalMessage(Auction auction, ContractNetMessageType type, Proposal proposal, CommUser sender, CommUser receiver, long timeSent) {
+		super(auction, type, sender, timeSent);
 		this.proposal = proposal;
 		this.receiver = receiver;
 	}
@@ -59,5 +60,13 @@ public class CNPProposalMessage extends CNPMessage {
 	
 	Optional<CommUser> to(){
 		return Optional.of(receiver);
+	}
+
+	public long getTimeSent() {
+		return timeSent;
+	}
+
+	public void setTimeSent(long timeSent) {
+		this.timeSent = timeSent;
 	}
 }

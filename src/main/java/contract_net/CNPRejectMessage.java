@@ -8,9 +8,10 @@ public class CNPRejectMessage extends CNPMessage {
 
 	private String rejectionReason;
 	private CommUser receiver;
+	private long timeSent;
 	
-	public CNPRejectMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, String rejectionReason) {
-		super(auction, type, sender);
+	public CNPRejectMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, String rejectionReason, long timeSent) {
+		super(auction, type, sender, timeSent);
 		this.rejectionReason = rejectionReason;
 		this.receiver = receiver;
 	}
@@ -26,4 +27,21 @@ public class CNPRejectMessage extends CNPMessage {
 	Optional<CommUser> to(){
 		return Optional.of(receiver);
 	}
+
+	public CommUser getReceiver() {
+		return receiver;
+	}
+
+	public void setReceiver(CommUser receiver) {
+		this.receiver = receiver;
+	}
+
+	public long getTimeSent() {
+		return timeSent;
+	}
+
+	public void setTimeSent(long timeSent) {
+		this.timeSent = timeSent;
+	}
+	
 }

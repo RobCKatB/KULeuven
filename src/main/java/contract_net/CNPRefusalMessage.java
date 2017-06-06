@@ -10,9 +10,10 @@ public class CNPRefusalMessage extends CNPMessage {
 	private String refusalReason;
 	private CommUser sender;
 	private CommUser receiver;
+	private long timeSent;
 	
-	public CNPRefusalMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, String refusalReason) {
-		super(auction, type, sender);
+	public CNPRefusalMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, String refusalReason, long timeSent) {
+		super(auction, type, sender, timeSent);
 		this.refusalReason = refusalReason;
 		this.sender = sender;
 	}
@@ -43,4 +44,29 @@ public class CNPRefusalMessage extends CNPMessage {
 	Optional<CommUser> to(){
 		return Optional.of(receiver);
 	}
+
+	public CommUser getSender() {
+		return sender;
+	}
+
+	public void setSender(CommUser sender) {
+		this.sender = sender;
+	}
+
+	public CommUser getReceiver() {
+		return receiver;
+	}
+
+	public void setReceiver(CommUser receiver) {
+		this.receiver = receiver;
+	}
+
+	public long getTimeSent() {
+		return timeSent;
+	}
+
+	public void setTimeSent(long timeSent) {
+		this.timeSent = timeSent;
+	}
+	
 }
