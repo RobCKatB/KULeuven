@@ -342,8 +342,17 @@ public class DispatchAgent implements CommUser, TickListener {
 		StringBuilder builder = new StringBuilder("DispatchAgent [");
 				
 		builder
-		.append("num parcels: ")
-		.append(toBeDispatchedParcels.size());
+		.append("parcels: ")
+		.append(toBeDispatchedParcels.size())
+		.append(",")
+		.append("proposals: ")
+		.append(proposals.size())
+		.append(",")
+		.append("tooLateProposals: ")
+		.append(tooLateProposals.size())
+		.append(",")
+		.append("rejectedProposals: ")
+		.append(rejectedProposals.size());
 		
 		
 		
