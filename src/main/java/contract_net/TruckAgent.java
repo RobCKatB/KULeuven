@@ -182,6 +182,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			return this.energy;
 		}
 		
+		private void consumeEnergy(double consumed){
+			this.energy -= consumed;
+		}
+		
 		private ChargingStation getClosestChargingstation(Point currentTruckPosition){
 			
 			ArrayList<ChargingStation> AllCharingStations = (ArrayList<ChargingStation>) getRoadModel().getObjectsOfType(ChargingStation.class);
@@ -360,7 +364,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// TODO??? wachten tot pickup klaar is: zit eigenlijk in continuePreviousActions
 			// move from parcel pickup to parcel delivery location
 			isPickingUp = false;
-			// TODO parcel.isPickedUp=true
+			// change ParcelState to isPickedUp()
+			defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isPickedUp();
+			
 			roadModel.get().moveTo((MovingRoadUser)m.getAuction().getParcel().getPickupLocation(), m.getAuction().getParcel().getDeliveryLocation(), time);
 			isMoving=true;
 			//TODO decrease fuel level
@@ -368,19 +374,19 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			isMoving = false;
 			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
 			isDelivering = true;
-			//TODO parcel.isDelivered = true
+	
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
 			// TODO??? wachten tot deliver klaar is: zit eigenlijk in continuePreviousActions
-			// TODO after delivering, change ParcelState.DELIVERED; and VehicleState.IDLE. Vooral VehicleState.IDLE is belangrijk anders can truck volgende opdracht niet uitvoeren
 			//defaultpdpmodel.continuePreviousActions(this, time); // continues with task if it is not finished in previous tick, but we cannot access it since it is protected
-			ParcelState s = defaultpdpmodel.getParcelState(m.getAuction().getParcel());
-			s.isDelivered();
-			
-			defaultpdpmodel.continuePreviousActions()
-			
+
 			// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
 			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
 			sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime);
+			// change ParcelState to isDelivered()
+			defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isDelivered();
+			// put vehicle state back on Idle such that the truck can participate in new auctions
+			isIdle = false; 
+			
 			//update AuctionResult class with calculated PDP times
 			AuctionResult auctionresult = m.getAuction().getDispatchAgent().getAuctionResult();
 			auctionresult.setTimeCFPDelivery(deliveryTime - pickupTime);
@@ -388,6 +394,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 			//TODO when PDP is finished, check whether there is still more energy than the energy needed to go to the charging station
 			// it there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to TO_CHARGING
+			
+			// TODO make list like in continuePreviousActions, to continue actions that did not finish in the current tick
 		}
 		
 		/*
@@ -444,7 +452,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void setCharging(boolean isCharging) {
 			this.isCharging = isCharging;
 		}
-		
+	/*	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder("Truck [");
@@ -474,5 +482,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			  
 		return builder.toString();
 	}
+	*/
 		
 }

@@ -50,7 +50,6 @@ import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 
-import be.kuleuven.cs.mas.GraphUtils;
 
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
@@ -158,6 +157,7 @@ public final class main {
     auctionResultsList = auctionResults.getAuctionResults();
     
     // add depots, trucks and parcels to simulator
+    //TODO take into account depot capacity
     for (int i = 0; i < NUM_DEPOTS; i++) {
     	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, auctionResultsList);
     	simulator.register(dispatchAgent);

@@ -46,7 +46,6 @@ public class DispatchAgent implements CommUser, TickListener {
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
 	private List<Proposal> proposals = new ArrayList<Proposal>();
 	private List<Proposal> tooLateProposals = new ArrayList<Proposal>();
-	private List<Proposal> rejectedProposals = new ArrayList<Proposal>();
 	//list of potential VehicleAgent contractors
 	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
 	// deze twee moeten in veiling
@@ -140,7 +139,11 @@ public class DispatchAgent implements CommUser, TickListener {
 						break;
 					}
 				}
-				generateAuctionResults(timeLapse);
+				// generate auction results for each auction/parcel (1 auction per parcel case)
+				for (Parcel parcel: toBeDispatchedParcels){
+					generateAuctionResults(timeLapse, parcel);
+				}
+
 			}
 		}
 
@@ -237,26 +240,35 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 
 
-	public void generateAuctionResults(TimeLapse timeLapse){
-		bestProposal = selectBestProposal(proposals);
+	public void generateAuctionResults(TimeLapse timeLapse, Parcel parcel){
+		List<Proposal> proposalsForThisParcel = new ArrayList<Proposal>();
+		List<Proposal> rejectedProposalsForThisParcel = new ArrayList<Proposal>();
+		for(Proposal prop: proposals){
+			if(prop.getAuction().getParcel().equals(parcel)){
+				proposalsForThisParcel.add(prop);
+			}
+		}
+		bestProposal = selectBestProposal(proposalsForThisParcel);
 		if(bestProposal != null){
 			sendAcceptProposal(bestProposal.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
-			//TODO change ParcelState
 		} else {
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
-			for(Proposal p: proposals){
-				rejectedProposals.add(p);
-				sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
+			for(Proposal p: proposalsForThisParcel){
+				if(!p.equals(bestProposal)){
+					rejectedProposalsForThisParcel.add(p);
+					sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
+				}
 			}
 		}
 		// send REJCECT_PROPOSAL message to all TruckAgent who sent their proposal after the auction deadline had passed
 		for(Proposal p: tooLateProposals){
-			rejectedProposals.add(p);
+			rejectedProposalsForThisParcel.add(p);
 			sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "too late", timeLapse);
 		}
 		// TODO: PDPtime and CFPtoDelivery time not yet known, make those parameters nullable in class AuctionResult instead of filling in here 0
-		auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), AUCTION_DURATION, 0, 0, rejectedProposals);
+		auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), AUCTION_DURATION, 0, 0, rejectedProposalsForThisParcel);
 		auctionResults.add(auctionResult);
+		
 	}
 	
 	public void sendAcceptProposal(Auction auction, ContractNetMessageType type, TimeLapse time){
@@ -272,7 +284,6 @@ public class DispatchAgent implements CommUser, TickListener {
 	 
 		public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser, String rejectionReasen, TimeLapse time){
 			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, rejectionReasen, time.getTime());
-			//TODO loop through all elements from auctionLosers, and send each a direct message
 			sendDirectMessage(cnpRejectMessage, loser);
 		}
 
@@ -313,8 +324,8 @@ public class DispatchAgent implements CommUser, TickListener {
 		// TODO waarmee moet deze methode overschreven worden?
 		//TODO we moeten nog ergens zorgen dat we een CollisionGraphRoadModel hebben, zie opdracht
 		
-		roadModel = Optional.of(pRoadModel);
-		pdpModel = Optional.of(pPdpModel);
+		//roadModel = Optional.of(pRoadModel);
+		//pdpModel = Optional.of(pPdpModel);
 	}
 
 	public long getCurrentTime() {
@@ -325,7 +336,7 @@ public class DispatchAgent implements CommUser, TickListener {
 		this.currentTime = currentTime;
 	}
 	
-	
+	/*
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder("DispatchAgent [");
@@ -339,5 +350,5 @@ public class DispatchAgent implements CommUser, TickListener {
 			  
 		return builder.toString();
 	}
-	
+	*/
 }
