@@ -103,7 +103,6 @@ public final class main {
    * Run the example.
    * @param testing If <code>true</code> enables the test mode.
    */
-  boolean testing = true;
   public static void run(boolean testing) {
     run(testing, Long.MAX_VALUE, MAP_FILE, null, null, null);
   }
@@ -161,16 +160,12 @@ public final class main {
     for (int i = 0; i < NUM_DEPOTS; i++) {
     	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, auctionResultsList);
     	simulator.register(dispatchAgent);
-    	// next registration maybe not needed
-    	commModel.register(dispatchAgent);// this registration links commUser dispatchAgent with the commDevice for the dispatchAgent
     }
     
 
     for (int i = 0; i < NUM_TRUCKS; i++) {
     	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
       simulator.register(truckAgent);
-   // next registration maybe not needed
-      commModel.register(truckAgent);
     }
 
     //// or use ParcelGenerator class
@@ -181,16 +176,13 @@ public final class main {
 	                .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
 	                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
 	                .buildDTO()));
-
-
     }
+    /*
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
     	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), rng);
     	simulator.register(chargingStation);
-    	// next registration maybe not needed
-    	commModel.register(chargingStation);
     }
-    
+    */
     simulator.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse time) {
@@ -211,8 +203,10 @@ public final class main {
       public void afterTick(TimeLapse timeLapse) {}
     });
     simulator.start();
+    /*
     System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
     	      .getStatistics());
+    	      */
     return simulator;
   }
 
