@@ -158,7 +158,7 @@ public final class main {
     // add depots, trucks and parcels to simulator
     //TODO take into account depot capacity
     for (int i = 0; i < NUM_DEPOTS; i++) {
-    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, auctionResultsList);
+    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, roadModel.getRandomPosition(rng), auctionResultsList);
     	simulator.register(dispatchAgent);
     }
     

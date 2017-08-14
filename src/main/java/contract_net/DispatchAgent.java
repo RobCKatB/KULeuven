@@ -35,11 +35,12 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 
 
-public class DispatchAgent implements CommUser, TickListener {
+public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 
 
 	private DefaultPDPModel defaultpdpmodel;
+	Optional<RoadModel> roadModel;
 	// stillToBeAssignedParcelss uit simulator halen want Parcels zijn geregistreerd in de simulator
 	private Collection<Parcel> toBeDispatchedParcels;
 	private List<CNPMessage> CNPmessages = new ArrayList<CNPMessage>();
@@ -72,12 +73,15 @@ public class DispatchAgent implements CommUser, TickListener {
 	private static final long AUCTION_DURATION = 1000;
 	private final RandomGenerator rng;
 	private CNPMessage cnpmessage;
+	private Point position;
 
-	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RandomGenerator rng, List<AuctionResult> auctionResults) {
+	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RandomGenerator rng, Point position, List<AuctionResult> auctionResults) {
+		super(position);
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
 		toBeDispatchedParcels = new ArrayList<Parcel>();
 		this.auctionResults = auctionResults;
 		commDevice = Optional.absent();
+		roadModel = Optional.absent();
 		// settings for commDevice belonging to DispatchAgent
 		this.rng = rng;
 		range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
@@ -100,7 +104,8 @@ public class DispatchAgent implements CommUser, TickListener {
 			
 			currentTime = timeLapse.getTime();
 			dispatchParcels(currentTime, AUCTION_DURATION);
-		
+			System.out.println("outbox: " +commDevice.get().getOutbox().toString());
+			System.out.println("inbox unread: " + commDevice.get().getUnreadMessages().toString());
 			if (commDevice.get().getUnreadCount() > 0) {
 				unreadMessages = readMessages();
 
@@ -153,6 +158,7 @@ public class DispatchAgent implements CommUser, TickListener {
 	}
 
 	public Collection<Parcel> getAVAILABLEParcels(){
+		System.out.println("available parcels:" +defaultpdpmodel.getParcels(ParcelState.AVAILABLE));
 		return defaultpdpmodel.getParcels(ParcelState.AVAILABLE);
 	}
 
@@ -178,6 +184,7 @@ public class DispatchAgent implements CommUser, TickListener {
 			throw new IllegalStateException("No commdevice activated for this dispatch agent");
 		}
 		CommDevice device = this.commDevice.get();
+		System.out.println("broadcast content: " +content.getAuction());
 		device.broadcast(content);
 	}
 
@@ -196,6 +203,7 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	public void dispatchParcels(long currentTime, long AUCTION_DURATION){
 		toBeDispatchedParcels = getAVAILABLEParcels();
+		System.out.println("to be dispatched parcels: "+  toBeDispatchedParcels);
 		if(!toBeDispatchedParcels.isEmpty()){
 			for(Parcel p: toBeDispatchedParcels){
 				Auction auction = new Auction(this, p, currentTime, AUCTION_DURATION, true);
@@ -298,11 +306,12 @@ public class DispatchAgent implements CommUser, TickListener {
 
 	// CommUser methods implemented
 	@Override
-	// not needed for us since the dispatch agent is a phone app, so it has not one position at a certain physical depot
 	public Optional<Point> getPosition() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	    if (roadModel.get().containsObject(this)) {
+	        return Optional.of(roadModel.get().getPosition(this));
+	      }
+	      return Optional.absent();
+	  }
 
 	@Override
 	public void setCommDevice(CommDeviceBuilder builder) {

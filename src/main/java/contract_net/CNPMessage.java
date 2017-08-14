@@ -53,7 +53,7 @@ public class CNPMessage implements MessageContents {
 	   * @return The {@link MessageContents} that this message contains.
 	   */
 	  public MessageContents getContents() {
-	    return contents();
+	    return this;
 	  }
 
 	  
@@ -69,9 +69,16 @@ public class CNPMessage implements MessageContents {
 
 	  @Override
 	  public String toString() {
-	    return MoreObjects.toStringHelper("Message")
+		  StringBuilder sb = new StringBuilder();
+		  sb.append("Message: " );
+		  sb.append(auction.toString());
+		  sb.append(type);
+		  sb.append(sender);
+		  sb.append(timeSent);
+		  return sb.toString();
+	    /*return MoreObjects.toStringHelper("Message")
 	      .add("contents", getContents())
-	      .toString();
+	      .toString();*/
 	  }
 
 	
@@ -86,7 +93,7 @@ public class CNPMessage implements MessageContents {
 	*/
 
 	MessageContents contents() {
-		return null;
+		return this.getContents();
 	}
 
 	Predicate<CommUser> predicate() {
