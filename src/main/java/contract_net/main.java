@@ -1,6 +1,5 @@
 package contract_net;
 
-
 /*
  * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *

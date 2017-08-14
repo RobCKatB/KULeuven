@@ -304,7 +304,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		this.auctionResult = auctionResult;
 	}
 
-	
 	// CommUser methods implemented
 	@Override
 	public Optional<Point> getPosition() {
