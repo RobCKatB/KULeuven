@@ -40,7 +40,8 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 
 	private DefaultPDPModel defaultpdpmodel;
-	Optional<RoadModel> roadModel;
+	private RoadModel roadModel;
+	//Optional<RoadModel> roadModel;
 	// stillToBeAssignedParcelss uit simulator halen want Parcels zijn geregistreerd in de simulator
 	private Collection<Parcel> toBeDispatchedParcels;
 	private List<CNPMessage> CNPmessages = new ArrayList<CNPMessage>();
@@ -75,13 +76,13 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	private CNPMessage cnpmessage;
 	private Point position;
 
-	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RandomGenerator rng, Point position, List<AuctionResult> auctionResults) {
+	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, RandomGenerator rng, Point position, List<AuctionResult> auctionResults) {
 		super(position);
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
+		this.roadModel = roadModel; // defined in the main
 		toBeDispatchedParcels = new ArrayList<Parcel>();
 		this.auctionResults = auctionResults;
 		commDevice = Optional.absent();
-		roadModel = Optional.absent();
 		// settings for commDevice belonging to DispatchAgent
 		this.rng = rng;
 		range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
@@ -307,10 +308,10 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	// CommUser methods implemented
 	@Override
 	public Optional<Point> getPosition() {
-	    if (roadModel.get().containsObject(this)) {
-	        return Optional.of(roadModel.get().getPosition(this));
+	   if (roadModel.containsObject(this)) {
+	        return Optional.of(roadModel.getPosition(this));
 	      }
-	      return Optional.absent();
+	      return Optional.<Point>absent();
 	  }
 
 	@Override

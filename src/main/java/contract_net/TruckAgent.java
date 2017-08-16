@@ -37,7 +37,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 //			    .getLogger(RouteFollowingVehicle.class);
 	private Queue<Point> path;
 	private Optional<CommDevice> commDevice;
-	private Optional<RoadModel> roadModel;
 	private Optional<Parcel> currParcel;
 	private int capacity;
 	private Point startPosition;
@@ -46,6 +45,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
     private List<CNPMessage> unreadMessages;
 	private DefaultPDPModel defaultpdpmodel;
+	private RoadModel roadModel;
     private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
 	private static final double SPEED = 1000d;
 	private static final double ENERGYCONSUMPTION = 1d; // Per unit mileage
@@ -68,7 +68,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	    
 	private Optional<ChargingStation> chargingStation = Optional.absent();
 	  
-	public TruckAgent(DefaultPDPModel defaultpdpmodel, Point startPosition, int capacity, RandomGenerator rng){
+	public TruckAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, Point startPosition, int capacity, RandomGenerator rng){
 		super(VehicleDTO.builder()
 			      .capacity(capacity)
 			      .startPosition(startPosition)
@@ -76,8 +76,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			      .build());
 		this.rng=rng;
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
+		this.roadModel = roadModel;// defined in the main
 		currParcel = Optional.absent();
-		roadModel = Optional.absent();
 		// settings for commDevice belonging to TruckAgent
 	    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
 	    reliability = rng.nextDouble();
@@ -96,7 +96,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
-	    final RoadModel roadModel = getRoadModel();
 	    final PDPModel pdpModel = getPDPModel();
 
 	/*
@@ -129,6 +128,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 						doProposal(this.getPosition().get(), m.getAuction(), this, time);
 					} else {
 						sendFailure(m.getAuction(), ContractNetMessageType.FAILURE, time);
+						System.out.println("at time " + time + " failure sent for " + m.getContents().toString());
 					}
 					break;
 				case ACCEPT_PROPOSAL:
@@ -319,6 +319,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			long timeCostBid = calculateTravelTimePDP(currentTruckPosition, auction.getParcel());
 			// TODO: check whether the truck has enough capacity to load the parcel
 			Proposal proposal = new Proposal(auction, proposer, timeCostBid);
+			System.out.println("Truckagent " + this + " needs " + timeCostBid + " time for auction " + auction.toString());
 			// TODO: methode closestChargingStation() schrijven om dichtste chargingStation te vinden, die een object van het type ChargingStation teruggeeft
 			// inspiratie zoeken in taxi example waar ze closest object zoeken via roadmodel
 			// TODO: in more advanced version of the program with a certain delivery time for a parcel:
@@ -326,12 +327,14 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			
 			// check whether there is enough energy to travel this distance, and only then do Proposal, otherwise send REFUSE
 			ChargingStation closestChargingStation = getClosestChargingstation(currentTruckPosition);
+			System.out.println("energy level of truckagent " + this + " is " + energy);
 			if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
 				// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 				proposals.add(proposal);//TruckAgent stays Idle while in auction, so he can participate in other auctions
 				// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
+				System.out.println("Truckagent " + this + " has sent a CNP proposal message about " + cnpProposalMessage.toString());
 				sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
 				// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
 				// the truck can participate in other auctions in the meantime
@@ -340,7 +343,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				isIdle = false;
 				isCharging = true;
 				sendRefusal(auction, "truck is charging", timelapse);
-				roadModel.get().moveTo(this, closestChargingStation.getPosition().get(), timelapse);
+				System.out.println("Truckagent " + this + " sends refusal for auction " + auction.toString());
+				roadModel.moveTo(this, closestChargingStation.getPosition().get(), timelapse);
 				// TODO: after that
 				boolean success = closestChargingStation.tryDock(this);
 				if(!success){
@@ -353,34 +357,38 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void doPDP(CNPMessage m, TimeLapse time){
 			isIdle = false;
 			//move from current position to parcel 
-			MoveProgress progress = roadModel.get().moveTo(this, m.getAuction().getParcel().getPickupLocation(), time);
+			MoveProgress progress = roadModel.moveTo(this, m.getAuction().getParcel().getPickupLocation(), time);
 			isMoving = true;
+			System.out.println("Truckagent " + this + " is moving to the pickup location of parcel " + m.getAuction().getParcel() + " at time " +time);
 			consumeEnergy(calculateEnergyConsumption(progress.distance().getValue()));
 			// pickup parcel
 			isMoving = false;
 			isPickingUp = true;
 			long pickupTime = time.getTime();
 			defaultpdpmodel.pickup(this, m.getAuction().getParcel(), time); // status of parcel will be changed to PICKING_UP
+			System.out.println("Truckagent " + this + " is picking up parcel " + m.getAuction().getParcel() + " at location " +m.getAuction().getParcel().getPickupLocation() + " and at time " +time);
 			// TODO??? wachten tot pickup klaar is: zit eigenlijk in continuePreviousActions
 			// move from parcel pickup to parcel delivery location
 			isPickingUp = false;
 			// change ParcelState to isPickedUp()
 			defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isPickedUp();
 			
-			roadModel.get().moveTo((MovingRoadUser)m.getAuction().getParcel().getPickupLocation(), m.getAuction().getParcel().getDeliveryLocation(), time);
+			roadModel.moveTo((MovingRoadUser)m.getAuction().getParcel().getPickupLocation(), m.getAuction().getParcel().getDeliveryLocation(), time);
+			System.out.println("Truckagent " + this + " is moving to the delivery location of parcel " + m.getAuction().getParcel() + " at time " +time);
 			isMoving=true;
 			//TODO decrease fuel level
 			long deliveryTime = time.getTime();
 			isMoving = false;
 			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
 			isDelivering = true;
-	
+			System.out.println("Truckagent " + this + " is delivering parcel " + m.getAuction().getParcel() + " at delivery location " + m.getAuction().getParcel().getDeliveryLocation() +" at time "+ time);
 			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
 			// TODO??? wachten tot deliver klaar is: zit eigenlijk in continuePreviousActions
 			//defaultpdpmodel.continuePreviousActions(this, time); // continues with task if it is not finished in previous tick, but we cannot access it since it is protected
 
 			// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
 			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
+			
 			sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime);
 			// change ParcelState to isDelivered()
 			defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isDelivered();
@@ -425,8 +433,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		
 		@Override
 		public Optional<Point> getPosition() {
-		    if (roadModel.get().containsObject(this)) {
-		        return Optional.of(roadModel.get().getPosition(this));
+		    if (roadModel.containsObject(this)) {
+		        return Optional.of(roadModel.getPosition(this));
 		      }
 		      return Optional.absent();
 		}

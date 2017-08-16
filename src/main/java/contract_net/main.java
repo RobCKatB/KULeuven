@@ -158,13 +158,13 @@ public final class main {
     // add depots, trucks and parcels to simulator
     //TODO take into account depot capacity
     for (int i = 0; i < NUM_DEPOTS; i++) {
-    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, rng, roadModel.getRandomPosition(rng), auctionResultsList);
+    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, roadModel, rng, roadModel.getRandomPosition(rng), auctionResultsList);
     	simulator.register(dispatchAgent);
     }
     
 
     for (int i = 0; i < NUM_TRUCKS; i++) {
-    	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
+    	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
       simulator.register(truckAgent);
     }
 
@@ -221,7 +221,7 @@ public final class main {
       .with(GraphRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
         .withImageAssociation(
-          Depot.class, "/graphics/perspective/tall-building-64.png")
+        DispatchAgent.class, "/graphics/perspective/tall-building-64.png")
         .withImageAssociation(
           TruckAgent.class, "/graphics/flat/small-truck-64.png")
         .withImageAssociation(
