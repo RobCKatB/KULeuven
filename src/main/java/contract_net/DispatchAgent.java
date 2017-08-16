@@ -1,5 +1,6 @@
 package contract_net;
 
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

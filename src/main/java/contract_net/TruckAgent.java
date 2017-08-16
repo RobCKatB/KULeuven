@@ -1,5 +1,6 @@
 package contract_net;
 
+
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
