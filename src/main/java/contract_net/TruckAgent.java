@@ -112,7 +112,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	// if we somehow need the time of a certain action
 	//long currentTime = time.getTime();
-
+	System.out.println("commDevice in Truckagent class: "+commDevice.toString());   
+	System.out.println("unread messages in Truckagent class: "+commDevice.get().getUnreadCount());    	    
 	if (commDevice.get().getUnreadCount() > 0) {
 		unreadMessages = readMessages();
 
@@ -143,7 +144,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 					 */
 
 					break;
-				case REJECT_PROPOSAL:
+				case REJECT_PROPOSAL:// dispatch agent as rejected the proposal of truckagent
 					// do nothing. The TruckAgent did not win the Auction for a certain package, so currently no tasks for the truck
 					break;
 				default:

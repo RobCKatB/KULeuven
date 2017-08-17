@@ -86,7 +86,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		commDevice = Optional.absent();
 		// settings for commDevice belonging to DispatchAgent
 		this.rng = rng;
-		range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+		//range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+		range = 2000.0D;
+		System.out.println("range " +range);
 		reliability = rng.nextDouble();
 	}
 
@@ -117,6 +119,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 					case REFUSE:
 						// do nothing
+						System.out.println("Truckagent "+ m.from() + " has sent a REFUSE message concerning auction "+ m.getAuction().toString());
 						break;
 					case PROPOSE:
 						CNPProposalMessage mess = (CNPProposalMessage)m;
@@ -130,13 +133,16 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 						}
 						break;
 					case FAILURE:
-						// do nothing or in more advanced form of the program: rebroadcast call for proposal
+						System.out.println("Truckagent "+ m.from() + " has sent failed to do a proposal for auction "+ m.getAuction().toString());
+						// TODO do nothing or in more advanced form of the program: rebroadcast call for proposal
 						break;
 					case INFORM_DONE:
+						System.out.println("Truckagent "+ m.from() + " has sent an INFORM DONE message "+ m.toString());
 						// truck tells that parcel is delivered
 						// TODO: store in AuctionResult that parcel is delivered
 						break;
 					case INFORM_RESULT:
+						System.out.println("Truckagent "+ m.from() + " has sent an INFORM RESULT message "+ m.toString());
 						// receive message from truck telling that parcel is delivered and giving information about the actual travel time, travel distance, fuel level,...
 						// TODO: store this information in AuctionResult
 						// TODO: set status of Package on IS_DELIVERED if this was not yet the case
@@ -210,6 +216,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			for(Parcel p: toBeDispatchedParcels){
 				Auction auction = new Auction(this, p, currentTime, AUCTION_DURATION, true);
 				sendCallForProposals(auction, p, currentTime, AUCTION_DURATION);
+				System.out.println("Call for proposals sent by dispatchagent "+this+ " for parcel "+p+". Auction "+ auction.toString()+ " started at "+currentTime+", auction duration "+AUCTION_DURATION);
 			}
 		}
 	}

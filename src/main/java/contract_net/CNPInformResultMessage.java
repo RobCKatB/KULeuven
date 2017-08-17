@@ -17,7 +17,6 @@ public class CNPInformResultMessage extends CNPMessage {
 		this.receiver=receiver;
 		this.timePickupToDelivery=timePickupToDelivery;
 		this.timeCFPToDelivery=timeCFPToDelivery;
-		this.timeSent=timeSent;
 	}
 
 	public Auction getAuction() {
@@ -76,5 +75,21 @@ public class CNPInformResultMessage extends CNPMessage {
 		this.timeSent = timeSent;
 	}
 	
+	public String toString(){
+		String cnpMessage = super.toString();
+		StringBuffer sb = new StringBuffer();
+		sb.append(cnpMessage);
+		sb.append("; INFORM RESULT message received by ");
+		sb.append(receiver);
+		sb.append(": Truckagent ");
+		sb.append(sender);
+		sb.append(" has picked up and delivered parcel ");
+		sb.append(auction.getParcel());
+		sb.append(" with a time between pickup and delivery of ");
+		sb.append(timePickupToDelivery);
+		sb.append(" and a time between call for proposal and delivery of ");
+		sb.append(timeCFPToDelivery);
+		return sb.toString();
+	}
 
 }

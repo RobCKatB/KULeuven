@@ -69,4 +69,17 @@ public class CNPProposalMessage extends CNPMessage {
 	public void setTimeSent(long timeSent) {
 		this.timeSent = timeSent;
 	}
+	
+
+	public String toString() {
+		String cnpMessage = super.toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append("CNPMessage: " );
+		sb.append(cnpMessage);
+		sb.append("Receiver of message: " );
+		sb.append(receiver);
+		sb.append("Proposal as reaction on CALL_FOR_PROPOSAL: " );
+		sb.append(proposal);
+		return sb.toString();
+	}
 }
