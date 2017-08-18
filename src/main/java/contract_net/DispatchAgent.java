@@ -126,6 +126,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 						if(m.getTimeSent() - m.getAuction().getStartTime()  < m.getAuction().getAuctionDuration())
 						{
 							proposals.add(mess.getProposal());
+							System.out.println("proposal from truckagent "+ mess.getSender()+ "is " +mess.getProposal().toString());
 						} else {
 							m.getAuction().setActiveAuction(false);
 							tooLateProposals.add(mess.getProposal());
@@ -283,6 +284,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		}
 		// TODO: PDPtime and CFPtoDelivery time not yet known, make those parameters nullable in class AuctionResult instead of filling in here 0
 		auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), AUCTION_DURATION, 0, 0, rejectedProposalsForThisParcel);
+		System.out.println("auction result" +auctionResult.toString());
 		auctionResults.add(auctionResult);
 		
 	}

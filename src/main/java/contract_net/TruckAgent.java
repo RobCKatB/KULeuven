@@ -161,6 +161,35 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			device.send(content, recipient);
 		}
 		
+		public void sendDirectProposalMessage(CNPProposalMessage content, CommUser recipient) {
+			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
+			CommDevice device = this.commDevice.get();
+			device.send(content, recipient);
+		}
+		
+		public void sendDirectRefusalMessage(CNPRefusalMessage content, CommUser recipient) {
+			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
+			CommDevice device = this.commDevice.get();
+			device.send(content, recipient);
+		}
+		
+		public void sendDirectFailureMessage(CNPFailureMessage content, CommUser recipient) {
+			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
+			CommDevice device = this.commDevice.get();
+			device.send(content, recipient);
+		}
+		
+		public void sendDirectInformDoneMessage(CNPInformDoneMessage content, CommUser recipient) {
+			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
+			CommDevice device = this.commDevice.get();
+			device.send(content, recipient);
+		}
+		
+		public void sendDirectInformResultMessage(CNPInformResultMessage content, CommUser recipient) {
+			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
+			CommDevice device = this.commDevice.get();
+			device.send(content, recipient);
+		}
 		public List<Proposal> getProposals() {
 			return proposals;
 		}
@@ -318,11 +347,11 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		}
 			
 		
-		public void doProposal(Point currentTruckPosition, Auction auction, TruckAgent proposer, TimeLapse timelapse){
-			long timeCostBid = calculateTravelTimePDP(currentTruckPosition, auction.getParcel());
+		public void doProposal(Point currentTruckPosition, Auction auction1, TruckAgent proposer, TimeLapse timelapse){
+			long timeCostBid = calculateTravelTimePDP(currentTruckPosition, auction1.getParcel());
 			// TODO: check whether the truck has enough capacity to load the parcel
-			Proposal proposal = new Proposal(auction, proposer, timeCostBid);
-			System.out.println("Truckagent " + this + " needs " + timeCostBid + " time for auction " + auction.toString());
+			Proposal proposal = new Proposal(auction1, proposer, timeCostBid);
+			System.out.println("Truckagent " + this + " needs " + timeCostBid + " time for auction " + auction1.toString());
 			// TODO: methode closestChargingStation() schrijven om dichtste chargingStation te vinden, die een object van het type ChargingStation teruggeeft
 			// inspiratie zoeken in taxi example waar ze closest object zoeken via roadmodel
 			// TODO: in more advanced version of the program with a certain delivery time for a parcel:
@@ -336,9 +365,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 				proposals.add(proposal);//TruckAgent stays Idle while in auction, so he can participate in other auctions
 				// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
-				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
-				System.out.println("Truckagent " + this + " has sent a CNP proposal message about " + cnpProposalMessage.toString());
-				sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
+				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction1, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
+				System.out.println(cnpProposalMessage.toString() + " sent by Truckagent " + this);
+				sendDirectProposalMessage(cnpProposalMessage, auction1.getSenderAuction());
 				// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
 				// the truck can participate in other auctions in the meantime
 			/*} else {
@@ -414,24 +443,24 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		 */
 		public void sendRefusal(Auction auction, String refusalReason, TimeLapse timeLapse){
 			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), refusalReason, timeLapse.getTime());
-			sendDirectMessage(cnpRefusalMessage, auction.getSenderAuction());	
+			sendDirectRefusalMessage(cnpRefusalMessage, auction.getSenderAuction());	
 		}
 		
 		public void sendFailure(Auction auction, ContractNetMessageType t, TimeLapse timeLapse){
 			CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, t, this, auction.getSenderAuction(), t.toString(), timeLapse.getTime());
-			sendDirectMessage(cnpFailureMessage, auction.getSenderAuction());
+			sendDirectFailureMessage(cnpFailureMessage, auction.getSenderAuction());
 		}
 
 		public void sendInformDone(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
 			CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getSenderAuction(), timeLapse.getTime());
-			sendDirectMessage(cnpInformDoneMessage, auction.getSenderAuction());	
+			sendDirectInformDoneMessage(cnpInformDoneMessage, auction.getSenderAuction());	
 		}
 
 		public void sendInformResult(Auction auction, ContractNetMessageType type, TimeLapse timeLapse, long pickupTime, long deliveryTime){
 			long timePickupToDelivery = deliveryTime - pickupTime;
 			long timeCFPToDelivery=deliveryTime - auction.getStartTime();
 			CNPInformResultMessage cnpInformResultMessage = new CNPInformResultMessage(auction, type, this, auction.getSenderAuction(), timePickupToDelivery, timeCFPToDelivery, timeLapse.getTime());
-			sendDirectMessage(cnpInformResultMessage, auction.getSenderAuction());	
+			sendDirectInformResultMessage(cnpInformResultMessage, auction.getSenderAuction());	
 		}
 		
 		@Override

@@ -5,12 +5,8 @@ import com.google.common.base.Optional;
 
 public class CNPProposalMessage extends CNPMessage {
 	
-	private Auction auction;
-	private ContractNetMessageType type;
 	private Proposal proposal;
-	private CommUser sender;
 	private CommUser receiver;
-	private long timeSent;
 
 	public CNPProposalMessage(Auction auction, ContractNetMessageType type, Proposal proposal, CommUser sender, CommUser receiver, long timeSent) {
 		super(auction, type, sender, timeSent);
@@ -18,21 +14,7 @@ public class CNPProposalMessage extends CNPMessage {
 		this.receiver = receiver;
 	}
 	
-	public Auction getAuction() {
-		return auction;
-	}
 
-	public void setAuction(Auction auction) {
-		this.auction = auction;
-	}
-
-	public ContractNetMessageType getType() {
-		return type;
-	}
-
-	public void setType(ContractNetMessageType type) {
-		this.type = type;
-	}
 
 	public Proposal getProposal() {
 		return proposal;
@@ -42,13 +24,6 @@ public class CNPProposalMessage extends CNPMessage {
 		this.proposal = proposal;
 	}
 
-	public CommUser getSender() {
-		return sender;
-	}
-
-	public void setSender(CommUser sender) {
-		this.sender = sender;
-	}
 
 	public CommUser getReceiver() {
 		return receiver;
@@ -61,15 +36,6 @@ public class CNPProposalMessage extends CNPMessage {
 	Optional<CommUser> to(){
 		return Optional.of(receiver);
 	}
-
-	public long getTimeSent() {
-		return timeSent;
-	}
-
-	public void setTimeSent(long timeSent) {
-		this.timeSent = timeSent;
-	}
-	
 
 	public String toString() {
 		String cnpMessage = super.toString();

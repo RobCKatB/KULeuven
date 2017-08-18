@@ -53,6 +53,9 @@ public class Proposal {
 					.append("auction: ")
 					.append(auction.getId())
 					.append(",")
+					.append("proposer: ")
+		 			.append(proposer)
+		 			.append("time needed for PDP: ")
 					.append(getTimeCostProposal());
 		 
 
