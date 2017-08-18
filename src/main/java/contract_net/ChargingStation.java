@@ -14,7 +14,8 @@ import com.google.common.base.Optional;
 
 public class ChargingStation implements CommUser, RoadUser, TickListener{
 	
-	private Optional<RoadModel> roadModel;
+	//private Optional<RoadModel> roadModel;
+	private RoadModel roadModel;
 	private Point startPosition;
 	private Optional<CommDevice> commDevice;
 	private Optional<TruckAgent> dockedVehicle;
@@ -27,10 +28,11 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
 	private final RandomGenerator rng;
 	  
-	public ChargingStation(Point startPosition, RandomGenerator rng){
+	public ChargingStation(Point startPosition, RoadModel roadModel, RandomGenerator rng){
 		this.rng = rng;
 		
-		this.roadModel = Optional.absent();
+		//this.roadModel = Optional.absent();
+		this.roadModel = roadModel;
 		this.startPosition = startPosition;
 		this.dockedVehicle = Optional.absent();
 		
@@ -69,7 +71,7 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 
 	@Override
 	public Optional<Point> getPosition() {
-		return Optional.of(roadModel.get().getPosition(this));
+		return Optional.of(roadModel.getPosition(this));
 	}
 
 	@Override
@@ -83,8 +85,7 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 
 	@Override
 	public void initRoadUser(RoadModel model) {
-		this.roadModel = Optional.of(model);
-		this.roadModel.get().addObjectAt(this, startPosition);
+		roadModel.addObjectAt(this, startPosition);
 	}
 
 	@Override

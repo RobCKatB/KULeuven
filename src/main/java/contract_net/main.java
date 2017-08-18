@@ -178,12 +178,14 @@ public final class main {
 	                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
 	                .buildDTO()));
     }
+  
     /*
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
-    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), rng);
+    	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), roadModel, rng);
     	simulator.register(chargingStation);
     }
     */
+  
     simulator.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse time) {
@@ -226,7 +228,9 @@ public final class main {
         .withImageAssociation(
           TruckAgent.class, "/graphics/flat/small-truck-64.png")
         .withImageAssociation(
-          Customer.class, "/graphics/perspective/deliverypackage.png"))
+          Customer.class, "/graphics/perspective/deliverypackage.png")
+      .withImageAssociation(
+    		  ChargingStation.class, "/graphics/perspective/gas-truck-64.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))
       .withTitleAppendix("PDP Demo");
 

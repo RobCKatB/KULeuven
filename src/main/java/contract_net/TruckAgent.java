@@ -116,6 +116,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	System.out.println("unread messages in Truckagent class: "+commDevice.get().getUnreadCount());    	    
 	if (commDevice.get().getUnreadCount() > 0) {
 		unreadMessages = readMessages();
+		System.out.println("unreadMessages truckagent: " + unreadMessages.toString());
 
 		for (CNPMessage m : unreadMessages) {
 			
@@ -190,12 +191,12 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		
 		private ChargingStation getClosestChargingstation(Point currentTruckPosition){
 			
-			ArrayList<ChargingStation> AllCharingStations = (ArrayList<ChargingStation>) getRoadModel().getObjectsOfType(ChargingStation.class);
-			
+			ArrayList<ChargingStation> allChargingStations = (ArrayList<ChargingStation>) getRoadModel().getObjectsOfType(ChargingStation.class);
+			System.out.println("All charging stations: "+allChargingStations);
 			double shortestDistance = Double.POSITIVE_INFINITY;
 			ChargingStation closestCharingStation = null;
 			
-			for (ChargingStation chargingStation : AllCharingStations) {
+			for (ChargingStation chargingStation : allChargingStations) {
 				double distance = calculatePointToPointDistance(currentTruckPosition, chargingStation.getPosition().get());
 				if(distance < shortestDistance){
 					shortestDistance = distance;
@@ -328,9 +329,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			// if currentTime is larger than the desired delivery time for the parcel, send no proposal
 			
 			// check whether there is enough energy to travel this distance, and only then do Proposal, otherwise send REFUSE
-			ChargingStation closestChargingStation = getClosestChargingstation(currentTruckPosition);
-			System.out.println("energy level of truckagent " + this + " is " + energy);
-			if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
+			//ChargingStation closestChargingStation = getClosestChargingstation(currentTruckPosition);
+			//System.out.println("energy level of truckagent " + this + " is " + energy);
+			//if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
 				// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 				// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 				proposals.add(proposal);//TruckAgent stays Idle while in auction, so he can participate in other auctions
@@ -340,7 +341,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				sendDirectMessage(cnpProposalMessage, auction.getSenderAuction());
 				// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
 				// the truck can participate in other auctions in the meantime
-			} else {
+			/*} else {
 				//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
 				isIdle = false;
 				isCharging = true;
@@ -352,7 +353,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				if(!success){
 					// TODO: try again next tick
 				}
-			}
+			}*/
 
 		}
 		
@@ -462,12 +463,12 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		public void setCharging(boolean isCharging) {
 			this.isCharging = isCharging;
 		}
-	/*	
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder("Truck [");
 				
-		builder.append(this.getPosition().get()).append(",");
+		builder.append(this.getPosition()).append(",");
 		
 		
 		if(this.isCharging){
@@ -492,6 +493,5 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			  
 		return builder.toString();
 	}
-	*/
 		
 }
