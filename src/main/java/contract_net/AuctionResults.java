@@ -18,4 +18,13 @@ public class AuctionResults {
 	public void setAuctionResults(List<AuctionResult> auctionResults) {
 		this.auctionResults = auctionResults;
 	}
+	
+	public String toString(){
+		StringBuffer sb = new StringBuffer();
+		for(AuctionResult ar : auctionResults){
+			sb.append(ar);
+			sb.append("\n"); 
+		}
+		return sb.toString();
+	}
 }

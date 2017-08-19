@@ -89,4 +89,26 @@ public class AuctionResult {
 		this.timeCFPDelivery = timeCFPDelivery;
 	}
 	
+	public String toString(){
+		StringBuffer sb = new StringBuffer();
+		sb.append(auction);
+		sb.append("\n"); 
+		sb.append(" auction winner is truckagent ");
+		sb.append(winner);
+		sb.append("\n"); 
+		sb.append(" auction duration ");
+		sb.append(auctionDuration);
+		sb.append("\n"); 
+		sb.append(" time between pickup and delivery ");
+		sb.append(timePickupDelivery);
+		sb.append("\n"); 
+		sb.append(" time between call for proposals and delivery ");
+		sb.append(timeCFPDelivery);
+		sb.append("\n"); 
+		sb.append(" list of rejected proposals by dispatch agent ");
+		sb.append(rejectedProposals);
+
+		return sb.toString();
+	}
+	
 }

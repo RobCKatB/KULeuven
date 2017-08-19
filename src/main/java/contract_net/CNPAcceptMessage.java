@@ -31,4 +31,19 @@ public class CNPAcceptMessage extends CNPMessage {
 	public void setReceiver(CommUser receiver) {
 		this.receiver = receiver;
 	}	
+	
+	public String toString(){
+		String cnpMessage = super.toString();
+		StringBuffer sb = new StringBuffer();
+		sb.append(cnpMessage);
+		sb.append("; ACCEPT message received by ");
+		sb.append(receiver);
+		sb.append(": Truckagent ");
+		sb.append(super.getSender());
+		sb.append(" has accepted the PDP task for parcel ");
+		sb.append(super.getAuction().getParcel());
+		sb.append(" with a cost in time of ");
+		sb.append(proposal.getTimeCostProposal());
+		return sb.toString();
+	}
 }

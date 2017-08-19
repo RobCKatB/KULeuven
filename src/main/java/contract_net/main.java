@@ -74,7 +74,7 @@ public final class main {
 
   private static final int SPEED_UP = 4;
   private static final int MAX_CAPACITY = 3;
-  private static final double NEW_PARCEL_PROB = .007;
+  private static final double NEW_PARCEL_PROB = .00; //TODO op .007 zetten
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =

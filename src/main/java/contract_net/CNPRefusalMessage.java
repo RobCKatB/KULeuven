@@ -32,4 +32,13 @@ public class CNPRefusalMessage extends CNPMessage {
 	public void setReceiver(CommUser receiver) {
 		this.receiver = receiver;
 	}
+	
+	public String toString() {
+		String cnpMessage = super.toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append(cnpMessage);
+		sb.append(" Reason for refusal : " );
+		sb.append(refusalReason);
+		return sb.toString();
+	}
 }

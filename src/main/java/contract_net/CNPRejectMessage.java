@@ -35,4 +35,14 @@ public class CNPRejectMessage extends CNPMessage {
 		this.receiver = receiver;
 	}
 	
+	public String toString() {
+		String cnpMessage = super.toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append(cnpMessage);
+		sb.append(" Receiver of reject message: " );
+		sb.append(receiver);
+		sb.append(" Reason for rejection : " );
+		sb.append(rejectionReason);
+		return sb.toString();
+	}
 }
