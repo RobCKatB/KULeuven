@@ -73,7 +73,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	static final double MIN_RANGE = .2;
 	static final double MAX_RANGE = 1.5;
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
-	private static final long AUCTION_DURATION = 1000;
+	private static final long AUCTION_DURATION = 1000000000;
 	private final RandomGenerator rng;
 	private CNPMessage cnpmessage;
 	private Point position;
@@ -108,9 +108,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			
 			currentTime = timeLapse.getTime();
 			dispatchParcels(currentTime, AUCTION_DURATION);
-			System.out.println("outbox in class DispatchAgent: " +commDevice.get().getOutbox().toString());
 			if (this.commDevice.get().getUnreadCount() > 0) {
 				unreadMessages = readMessages();
+				//TODO opletten, door de unread messages in te lezen, wordt inbox geleegd. Maar er zitten in de inbox ook bv CFP messages voor truckagent, die echter bij het loopen door dispatchagent niet herkend worden en verloren gaan.
 
 				for (CNPMessage m : unreadMessages) {
 
@@ -152,9 +152,12 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 						break;
 					}
 				}
-				// generate auction results for each auction/parcel (1 auction per parcel case)
+				
+				//generate auction results for each auction/parcel (1 auction per parcel case)
 				for (Parcel parcel: toBeDispatchedParcels){
-					generateAuctionResults(timeLapse, parcel);
+					if(!proposals.isEmpty() || !tooLateProposals.isEmpty()){
+						generateAuctionResults(timeLapse, parcel);
+					}
 				}
 
 			}
@@ -192,7 +195,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			throw new IllegalStateException("No commdevice activated for this dispatch agent");
 		}
 		CommDevice device = this.commDevice.get();
-		System.out.println("broadcast content: " +content.getAuction());
 		device.broadcast(content);
 	}
 
