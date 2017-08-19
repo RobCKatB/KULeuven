@@ -25,6 +25,7 @@ import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
@@ -33,7 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
 
-public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
+public class TruckAgent extends Vehicle implements TickListener, CommUser, MovingRoadUser {
 //	private static final Logger LOGGER = LoggerFactory
 //			    .getLogger(RouteFollowingVehicle.class);
 	private Queue<Point> path;
@@ -54,7 +55,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	// for CommUser
 	  private final double range;
-	  private final double reliability = 0.5;
+	  private final double reliability = 1.0D;
 	  static final double MIN_RANGE = .2;
 	  static final double MAX_RANGE = 1.5;
 	  static final long LONELINESS_THRESHOLD = 10 * 1000;
@@ -110,10 +111,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	// if we somehow need the time of a certain action
 	//long currentTime = time.getTime();   
-	if (commDevice.get().getUnreadCount() > 0) {
+	if (this.commDevice.get().getUnreadCount() > 0) {
 		unreadMessages = readMessages();
 		System.out.println("unreadMessages truckagent: " + unreadMessages.toString());
-
 		for (CNPMessage m : unreadMessages) {
 			
 				switch (m.getType()) {

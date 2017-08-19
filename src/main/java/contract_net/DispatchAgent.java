@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 
 
+
 public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 
@@ -68,7 +69,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	// settings of commDevice
 	private long lastReceiveTime;
 	private final double range;
-	private final double reliability = 0.5;
+	private final double reliability = 1.0D;
 	static final double MIN_RANGE = .2;
 	static final double MAX_RANGE = 1.5;
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
@@ -108,7 +109,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			currentTime = timeLapse.getTime();
 			dispatchParcels(currentTime, AUCTION_DURATION);
 			System.out.println("outbox in class DispatchAgent: " +commDevice.get().getOutbox().toString());
-			if (commDevice.get().getUnreadCount() > 0) {
+			if (this.commDevice.get().getUnreadCount() > 0) {
 				unreadMessages = readMessages();
 
 				for (CNPMessage m : unreadMessages) {
@@ -333,6 +334,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 				.build());
 	}
 
+	
 	@Override
 	public void afterTick(TimeLapse timeLapse) {
 	
@@ -354,6 +356,14 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		this.currentTime = currentTime;
 	}
 	
+	public List<CNPMessage> getUnreadMessages() {
+		return unreadMessages;
+	}
+
+	public void setUnreadMessages(List<CNPMessage> unreadMessages) {
+		this.unreadMessages = unreadMessages;
+	}
+
 	/*
 	@Override
 	public String toString() {
