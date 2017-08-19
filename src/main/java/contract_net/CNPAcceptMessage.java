@@ -6,7 +6,6 @@ import com.google.common.base.Optional;
 public class CNPAcceptMessage extends CNPMessage {
 	private Proposal proposal;
 	private CommUser receiver;
-	private long timeSent;
 
 	public CNPAcceptMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, Proposal proposal, long timeSent) {
 		super(auction, type, sender, timeSent);
@@ -31,13 +30,5 @@ public class CNPAcceptMessage extends CNPMessage {
 
 	public void setReceiver(CommUser receiver) {
 		this.receiver = receiver;
-	}
-
-	public long getTimeSent() {
-		return timeSent;
-	}
-
-	public void setTimeSent(long timeSent) {
-		this.timeSent = timeSent;
 	}	
 }

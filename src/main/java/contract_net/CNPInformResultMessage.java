@@ -4,43 +4,15 @@ import com.github.rinde.rinsim.core.model.comm.CommUser;
 
 public class CNPInformResultMessage extends CNPMessage {
 
-	private Auction auction;
-	private ContractNetMessageType type;
-	private CommUser sender;
 	private CommUser receiver;
 	private long timePickupToDelivery;
 	private long timeCFPToDelivery;
-	private long timeSent;
 	
 	public CNPInformResultMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, long timePickupToDelivery, long timeCFPToDelivery, long timeSent) {
 		super(auction, type, sender, timeSent);
 		this.receiver=receiver;
 		this.timePickupToDelivery=timePickupToDelivery;
 		this.timeCFPToDelivery=timeCFPToDelivery;
-	}
-
-	public Auction getAuction() {
-		return auction;
-	}
-
-	public void setAuction(Auction auction) {
-		this.auction = auction;
-	}
-
-	public ContractNetMessageType getType() {
-		return type;
-	}
-
-	public void setType(ContractNetMessageType type) {
-		this.type = type;
-	}
-
-	public CommUser getSender() {
-		return sender;
-	}
-
-	public void setSender(CommUser sender) {
-		this.sender = sender;
 	}
 
 	public CommUser getReceiver() {
@@ -66,14 +38,6 @@ public class CNPInformResultMessage extends CNPMessage {
 	public void setTimeCFPToDelivery(long timeCFPToDelivery) {
 		this.timeCFPToDelivery = timeCFPToDelivery;
 	}
-
-	public long getTimeSent() {
-		return timeSent;
-	}
-
-	public void setTimeSent(long timeSent) {
-		this.timeSent = timeSent;
-	}
 	
 	public String toString(){
 		String cnpMessage = super.toString();
@@ -81,10 +45,8 @@ public class CNPInformResultMessage extends CNPMessage {
 		sb.append(cnpMessage);
 		sb.append("; INFORM RESULT message received by ");
 		sb.append(receiver);
-		sb.append(": Truckagent ");
-		sb.append(sender);
 		sb.append(" has picked up and delivered parcel ");
-		sb.append(auction.getParcel());
+		sb.append(super.getAuction().getParcel());
 		sb.append(" with a time between pickup and delivery of ");
 		sb.append(timePickupToDelivery);
 		sb.append(" and a time between call for proposal and delivery of ");

@@ -40,7 +40,6 @@ public class CNPProposalMessage extends CNPMessage {
 	public String toString() {
 		String cnpMessage = super.toString();
 		StringBuilder sb = new StringBuilder();
-		sb.append("CNPMessage: " );
 		sb.append(cnpMessage);
 		sb.append("Receiver of message: " );
 		sb.append(receiver);

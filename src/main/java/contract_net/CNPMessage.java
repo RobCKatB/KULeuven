@@ -2,6 +2,7 @@ package contract_net;
 
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -13,6 +14,26 @@ public class CNPMessage implements MessageContents {
 	private Auction auction; // parcel to be picked up by a Truck, auction initiated by DispatchAgent
 	private Optional<CommDevice> commDevice;
 	private CommUser sender;
+	public Optional<CommDevice> getCommDevice() {
+		return commDevice;
+	}
+
+
+	public void setCommDevice(Optional<CommDevice> commDevice) {
+		this.commDevice = commDevice;
+	}
+
+
+	public CommUser getSender() {
+		return sender;
+	}
+
+
+	public void setSender(CommUser sender) {
+		this.sender = sender;
+	}
+
+
 	private long timeSent;
 
 	// or Auction instead of Parcel as parameter for constructor?
@@ -70,10 +91,12 @@ public class CNPMessage implements MessageContents {
 	  @Override
 	  public String toString() {
 		  StringBuilder sb = new StringBuilder();
-		  sb.append("Message: " );
 		  sb.append(auction.toString());
+		  sb.append("; message type: ");
 		  sb.append(type);
+		  sb.append("; sender of message: ");
 		  sb.append(sender);
+		  sb.append("; message sent at time : ");
 		  sb.append(timeSent);
 		  return sb.toString();
 	    /*return MoreObjects.toStringHelper("Message")

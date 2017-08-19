@@ -68,7 +68,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	// settings of commDevice
 	private long lastReceiveTime;
 	private final double range;
-	private final double reliability;
+	private final double reliability = 0.5;
 	static final double MIN_RANGE = .2;
 	static final double MAX_RANGE = 1.5;
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
@@ -87,8 +87,8 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		// settings for commDevice belonging to DispatchAgent
 		this.rng = rng;
 		//range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
-		range = 9000000.0D;
-		reliability = rng.nextDouble();
+		//range = 9000000.0D;
+		range = Double.MAX_VALUE;
 	}
 
 	// thicklistener methods implemented
@@ -108,7 +108,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			currentTime = timeLapse.getTime();
 			dispatchParcels(currentTime, AUCTION_DURATION);
 			System.out.println("outbox in class DispatchAgent: " +commDevice.get().getOutbox().toString());
-			System.out.println("inbox unread in class DispatchAgent: " + commDevice.get().getUnreadMessages().toString());
 			if (commDevice.get().getUnreadCount() > 0) {
 				unreadMessages = readMessages();
 

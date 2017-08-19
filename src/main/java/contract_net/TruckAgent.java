@@ -54,7 +54,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	// for CommUser
 	  private final double range;
-	  private final double reliability;
+	  private final double reliability = 0.5;
 	  static final double MIN_RANGE = .2;
 	  static final double MAX_RANGE = 1.5;
 	  static final long LONELINESS_THRESHOLD = 10 * 1000;
@@ -80,8 +80,9 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		this.roadModel = roadModel;// defined in the main
 		currParcel = Optional.absent();
 		// settings for commDevice belonging to TruckAgent
-	    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
-	    reliability = rng.nextDouble();
+		range = Double.MAX_VALUE;
+	    //range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+	    //reliability = rng.nextDouble();
 		commDevice = Optional.absent();
 		// when you create a new TruckAgent, he is full of charge
 		isCharging = false;
@@ -91,9 +92,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		isMoving = false;
 
 	}
-
-
-	  
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
@@ -111,9 +109,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
     */
 
 	// if we somehow need the time of a certain action
-	//long currentTime = time.getTime();
-	System.out.println("commDevice in Truckagent class: "+commDevice.toString());   
-	System.out.println("unread messages in Truckagent class: "+commDevice.get().getUnreadCount());    	    
+	//long currentTime = time.getTime();   
 	if (commDevice.get().getUnreadCount() > 0) {
 		unreadMessages = readMessages();
 		System.out.println("unreadMessages truckagent: " + unreadMessages.toString());
@@ -165,6 +161,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
 			CommDevice device = this.commDevice.get();
 			device.send(content, recipient);
+			System.out.println("outbox truckagent: " +device.getOutbox().toString());
 		}
 		
 		public void sendDirectRefusalMessage(CNPRefusalMessage content, CommUser recipient) {

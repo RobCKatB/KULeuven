@@ -7,9 +7,6 @@ public class CNPFailureMessage extends CNPMessage {
 	
 	private String reasonForFailure;
 	private CommUser receiver;
-	private long timeSent;
-	private Auction auction;
-	private CommUser sender;
 
 
 	public CNPFailureMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, String reasonForFailure, long timeSent) {
@@ -37,14 +34,6 @@ public class CNPFailureMessage extends CNPMessage {
 		this.receiver = receiver;
 	}
 
-	public long getTimeSent() {
-		return timeSent;
-	}
-
-	public void setTimeSent(long timeSent) {
-		this.timeSent = timeSent;
-	}
-	
 	public String toString(){
 		String cnpMessage = super.toString();
 		StringBuffer sb = new StringBuffer();
@@ -52,9 +41,9 @@ public class CNPFailureMessage extends CNPMessage {
 		sb.append("; FAILURE message received by ");
 		sb.append(receiver);
 		sb.append(": Truckagent ");
-		sb.append(sender);
+		sb.append(super.getSender());
 		sb.append(" has picked up and delivered parcel ");
-		sb.append(auction.getParcel());
+		sb.append(super.getAuction().getParcel());
 		return sb.toString();
 	}
 }
