@@ -46,17 +46,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	//Optional<RoadModel> roadModel;
 	// stillToBeAssignedParcelss uit simulator halen want Parcels zijn geregistreerd in de simulator
 	private Collection<Parcel> toBeDispatchedParcels;
-	private List<CNPMessage> CNPmessages = new ArrayList<CNPMessage>();
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
 	private List<Proposal> proposals = new ArrayList<Proposal>();
 	private List<Proposal> tooLateProposals = new ArrayList<Proposal>();
-	//list of potential VehicleAgent contractors
-	private List<TruckAgent> potentialContractors = new ArrayList<TruckAgent>();
-	// deze twee moeten in veiling
-	private List<TruckAgent> lostContractors = new ArrayList<TruckAgent>();
-	private TruckAgent winningContractor = null;
-	private ArrayList<CommUser> commUsers = new ArrayList<CommUser>(); // TruckAgent commUsers coupled to DispatchAgent
-	private Proposal bestProposal;
 	//used to record the number of received messages
 	//in this version, we impose the manager to wait till receiving answers from all the contractors
 	private int numberOfreceivedMessages = 0;
@@ -66,18 +58,13 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 	//record the agent responsible for the best proposal
 	private Optional<CommDevice> commDevice;
-	// settings of commDevice
-	private long lastReceiveTime;
 	private final double range;
 	private final double reliability = 1.0D;
 	static final double MIN_RANGE = .2;
 	static final double MAX_RANGE = 1.5;
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
-	private static final long AUCTION_DURATION = 1000000000;
-	private final RandomGenerator rng;
-	private CNPMessage cnpmessage;
-	private Point position;
-
+	private static final long AUCTION_DURATION = 10000;
+	
 	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, RandomGenerator rng, Point position, List<AuctionResult> auctionResults) {
 		super(position);
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
@@ -85,8 +72,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		toBeDispatchedParcels = new ArrayList<Parcel>();
 		this.auctionResults = auctionResults;
 		commDevice = Optional.absent();
-		// settings for commDevice belonging to DispatchAgent
-		this.rng = rng;
 		//range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
 		//range = 9000000.0D;
 		range = Double.MAX_VALUE;
@@ -95,17 +80,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	// thicklistener methods implemented
 		@Override
 		public void tick(TimeLapse timeLapse) {
-			/*
-		    if (!destination.isPresent()) {
-		      destination = Optional.of(roadModel.get().getRandomPosition(rng));
-		    }
-		    roadModel.get().moveTo(this, destination.get(), timeLapse);
-		    if (roadModel.get().getPosition(this).equals(destination.get())) {
-		      destination = Optional.absent();
-		    }
-		    
-		    */
-			
 			currentTime = timeLapse.getTime();
 			dispatchParcels(currentTime, AUCTION_DURATION);
 			if (this.commDevice.get().getUnreadCount() > 0) {
@@ -118,33 +92,45 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 					case REFUSE:
 						// do nothing
-						System.out.println("Truckagent "+ m.from() + " has sent a REFUSE message concerning auction "+ m.getAuction().toString());
+						CNPRefusalMessage cnpRefusalMessage = (CNPRefusalMessage)m;
+						System.out.println("REFUSAL MESSAGE sent by truckagent "+ cnpRefusalMessage.from() + " for auction "+ cnpRefusalMessage.getAuction().toString());
 						break;
 					case PROPOSE:
-						CNPProposalMessage mess = (CNPProposalMessage)m;
+						CNPProposalMessage cnpProposalMessage = (CNPProposalMessage)m;
 						// check that only proposals that arrive before the auction deadline are added
-						if(m.getTimeSent() - m.getAuction().getStartTime()  < m.getAuction().getAuctionDuration())
+						if(cnpProposalMessage.getTimeSent() - cnpProposalMessage.getAuction().getStartTime()  < cnpProposalMessage.getAuction().getAuctionDuration())
 						{
-							proposals.add(mess.getProposal());
-							System.out.println("proposal from truckagent "+ mess.getSender()+ "is " +mess.getProposal().toString());
+							proposals.add(cnpProposalMessage.getProposal());
+							System.out.println("proposal from truckagent "+ cnpProposalMessage.getSender()+ "is " +cnpProposalMessage.getProposal().toString());
 						} else {
-							m.getAuction().setActiveAuction(false);
-							tooLateProposals.add(mess.getProposal());
+							cnpProposalMessage.getAuction().setActiveAuction(false);
+							tooLateProposals.add(cnpProposalMessage.getProposal());
 						}
 						break;
 					case FAILURE:
-						System.out.println("Truckagent "+ m.from() + " has sent failed to do a proposal for auction "+ m.getAuction().toString());
+						CNPFailureMessage cnpFailureMessage = (CNPFailureMessage)m;
+						System.out.println("Truckagent "+ cnpFailureMessage.from() + " has sent failed to do a proposal for auction "+ cnpFailureMessage.getAuction().toString());
 						// TODO do nothing or in more advanced form of the program: rebroadcast call for proposal
 						break;
 					case INFORM_DONE:
-						System.out.println("Truckagent "+ m.from() + " has sent an INFORM DONE message "+ m.toString());
+						CNPInformDoneMessage cnpInformDoneMessage = (CNPInformDoneMessage)m;
+						System.out.println("Truckagent "+ cnpInformDoneMessage.from() + " has sent an INFORM DONE message "+ cnpInformDoneMessage.toString());
 						// truck tells that parcel is delivered
 						// TODO: store in AuctionResult that parcel is delivered
 						break;
 					case INFORM_RESULT:
-						System.out.println("Truckagent "+ m.from() + " has sent an INFORM RESULT message "+ m.toString());
-						// receive message from truck telling that parcel is delivered and giving information about the actual travel time, travel distance, fuel level,...
-						// TODO: store this information in AuctionResult
+						// an INFORM_RESULT message comes from the truckagent that won the action, so the truckagent that had the best proposal for the PDP task
+						CNPInformResultMessage cnpInformResultMessage = (CNPInformResultMessage)m;
+						System.out.println("INFORM RESULT message received by dispatchagent from truckagent "+  cnpInformResultMessage.toString());
+						List<Proposal> validProposalsForThisParcel= proposalsForThisParcel(cnpInformResultMessage.getAuction().getParcel(), proposals);
+						List<Proposal> tooLateProposalsForThisParcel= proposalsForThisParcel(cnpInformResultMessage.getAuction().getParcel(), tooLateProposals);
+						Proposal bestProposalForThisParcel = selectBestProposal(validProposalsForThisParcel);
+						List<Proposal> rejectedProposalsForThisParcel= getRejectedProposalsForThisParcel(cnpInformResultMessage.getAuction().getParcel(), bestProposalForThisParcel, validProposalsForThisParcel, tooLateProposalsForThisParcel);
+						
+						auctionResult = new AuctionResult(cnpInformResultMessage.getAuction(), bestProposalForThisParcel, bestProposalForThisParcel.getProposer(), AUCTION_DURATION, cnpInformResultMessage.getTimeTruckToPickup(), cnpInformResultMessage.getTimePickupToDelivery(), cnpInformResultMessage.getTimeTruckToPickupToDelivery(), cnpInformResultMessage.getTimeCFPToDelivery(), rejectedProposalsForThisParcel);
+						System.out.println("AUCTION RESULT: " +auctionResult.toString());
+						auctionResults.add(auctionResult);
+
 						// TODO: set status of Package on IS_DELIVERED if this was not yet the case
 						
 						break;
@@ -152,12 +138,13 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 						break;
 					}
 				}
-				
-				//generate auction results for each auction/parcel (1 auction per parcel case)
-				for (Parcel parcel: toBeDispatchedParcels){
-					if(!proposals.isEmpty() || !tooLateProposals.isEmpty()){
-						generateAuctionResults(timeLapse, parcel);
-					}
+			}				
+			//send accept and reject proposal messages for each auction/parcel (1 auction per parcel case)
+			for (Parcel parcel: toBeDispatchedParcels){
+				List<Proposal> validProposalsForThisParcel= proposalsForThisParcel(parcel, proposals);
+				List<Proposal> tooLateProposalsForThisParcel= proposalsForThisParcel(parcel, tooLateProposals);
+				if(!validProposalsForThisParcel.isEmpty() || !tooLateProposalsForThisParcel.isEmpty()){
+					sendAcceptRejectProposalMessages(timeLapse, parcel, validProposalsForThisParcel, tooLateProposalsForThisParcel);
 				}
 
 			}
@@ -169,7 +156,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	}
 
 	public Collection<Parcel> getAVAILABLEParcels(){
-		System.out.println("available parcels:" +defaultpdpmodel.getParcels(ParcelState.AVAILABLE));
 		return defaultpdpmodel.getParcels(ParcelState.AVAILABLE);
 	}
 
@@ -259,41 +245,64 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	}
 
 
-	public void generateAuctionResults(TimeLapse timeLapse, Parcel parcel){
+	public List<Proposal> proposalsForThisParcel(Parcel parcel, List<Proposal> proposals){
 		List<Proposal> proposalsForThisParcel = new ArrayList<Proposal>();
-		List<Proposal> rejectedProposalsForThisParcel = new ArrayList<Proposal>();
+
 		for(Proposal prop: proposals){
 			if(prop.getAuction().getParcel().equals(parcel)){
 				proposalsForThisParcel.add(prop);
 			}
 		}
-		bestProposal = selectBestProposal(proposalsForThisParcel);
-		if(bestProposal != null){
-			sendAcceptProposal(bestProposal.getAuction(), ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
+		return proposalsForThisParcel ;
+	}
+	
+	public List<Proposal> getRejectedProposalsForThisParcel(Parcel parcel, Proposal bestProposal, List<Proposal> validProposalsForThisParcel, List<Proposal> tooLateProposalsForThisParcel){
+		List<Proposal> rejectedProposalsForThisParcel = new ArrayList<Proposal>();
+		for(Proposal valid: validProposalsForThisParcel){
+			if(!valid.equals(bestProposal)){
+				rejectedProposalsForThisParcel.add(valid);}
+		}
+		for(Proposal tooLate: tooLateProposalsForThisParcel){
+			rejectedProposalsForThisParcel.add(tooLate);
+		}
+		return rejectedProposalsForThisParcel;
+	}
+	
+	public void sendAcceptRejectProposalMessages(TimeLapse timeLapse, Parcel parcel, List<Proposal> validProposalsForThisParcel, List<Proposal> tooLateProposalsForThisParcel){
+		Proposal bestProp = selectBestProposal(validProposalsForThisParcel);
+		System.out.println("Best proposal :" +bestProp);
+		List<Proposal> rejectedProposalsForThisParcel = new ArrayList<Proposal>();
+		if(bestProp != null){
+			sendAcceptProposal(bestProp.getAuction(), bestProp, ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
+			System.out.println("ACCEPT proposal sent by dispatchagent " + this+ " to truckagent " +bestProp.getProposer());
 		} else {
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
-			for(Proposal p: proposalsForThisParcel){
-				if(!p.equals(bestProposal)){
+			for(Proposal p: validProposalsForThisParcel){
+				if(!p.equals(bestProp)){
 					rejectedProposalsForThisParcel.add(p);
 					sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
+					System.out.println("REJECT proposal sent by dispatchagent " + this+ " to truckagent " +p.getProposer());
 				}
 			}
 		}
-		// send REJCECT_PROPOSAL message to all TruckAgent who sent their proposal after the auction deadline had passed
-		for(Proposal p: tooLateProposals){
+		// send REJCECT_PROPOSAL message to all TruckAgent who sent their proposal for this parcel after the auction deadline had passed, i.e. the non valid proposals
+		for(Proposal p: tooLateProposalsForThisParcel){
 			rejectedProposalsForThisParcel.add(p);
 			sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "too late", timeLapse);
+			System.out.println("REJECT proposal due to too late submisseion sent by dispatchagent " + this+ " to truckagent " +p.getProposer());
 		}
+		/*moved to INFORM_RESULT case since there all needed information is gathered
 		// TODO: PDPtime and CFPtoDelivery time not yet known, make those parameters nullable in class AuctionResult instead of filling in here 0
 		auctionResult = new AuctionResult(bestProposal.getAuction(), bestProposal, bestProposal.getProposer(), AUCTION_DURATION, 0, 0, rejectedProposalsForThisParcel);
 		System.out.println("auction result" +auctionResult.toString());
 		auctionResults.add(auctionResult);
+		*/
 		
 	}
 	
-	public void sendAcceptProposal(Auction auction, ContractNetMessageType type, TimeLapse time){
-		CNPAcceptMessage cnpAcceptMessage = new CNPAcceptMessage(auction, type, this, bestProposal.getProposer(), bestProposal, time.getTime());
-		sendDirectMessage(cnpAcceptMessage, bestProposal.getProposer());
+	public void sendAcceptProposal(Auction auction, Proposal bestProp, ContractNetMessageType type, TimeLapse time){
+		CNPAcceptMessage cnpAcceptMessage = new CNPAcceptMessage(auction, type, this, bestProp.getProposer(), bestProp, time.getTime());
+		sendDirectMessage(cnpAcceptMessage, bestProp.getProposer());
 	}
 	
 	public void sendRefusal(Auction auction, ContractNetMessageType type,TimeLapse time){

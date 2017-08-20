@@ -74,14 +74,14 @@ public final class main {
 
   private static final int SPEED_UP = 4;
   private static final int MAX_CAPACITY = 3;
-  private static final double NEW_PARCEL_PROB = .00; //TODO op .007 zetten
+  private static final double NEW_PARCEL_PROB = .007; //TODO op .007 zetten 
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
     newHashMap();
   
-  private static final long TEST_STOP_TIME = 20 * 60 * 1000;
-  private static final int TEST_SPEED_UP = 64;
+  private static final long TEST_STOP_TIME = 20 * 60 * 10000;
+  private static final int TEST_SPEED_UP = 1024;
   
   private main() {}
  
@@ -97,7 +97,7 @@ public final class main {
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
       : MAP_FILE;
-    run(false, endTime, graphFile, null /* new Display() */, null, null);
+    run(true, endTime, graphFile, null /* new Display() */, null, null);
   }
 
   /**
@@ -169,7 +169,6 @@ public final class main {
       simulator.register(truckAgent);
     }
 
-    //// or use ParcelGenerator class
     for (int i = 0; i < NUM_PARCELS; i++) {
       simulator.register(new Customer(
   	        Parcel.builder(roadModel.getRandomPosition(rng),

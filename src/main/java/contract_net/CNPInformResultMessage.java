@@ -6,12 +6,16 @@ public class CNPInformResultMessage extends CNPMessage {
 
 	private CommUser receiver;
 	private long timePickupToDelivery;
+	private long timeTruckToPickup;
 	private long timeCFPToDelivery;
-	
-	public CNPInformResultMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, long timePickupToDelivery, long timeCFPToDelivery, long timeSent) {
+	private long timeTruckToPickupToDelivery;
+
+	public CNPInformResultMessage(Auction auction, ContractNetMessageType type, CommUser sender, CommUser receiver, long timeTruckToPickup, long timePickupToDelivery, long timeTruckToPickupToDelivery, long timeCFPToDelivery, long timeSent) {
 		super(auction, type, sender, timeSent);
 		this.receiver=receiver;
+		this.timeTruckToPickup = timeTruckToPickup;
 		this.timePickupToDelivery=timePickupToDelivery;
+		this.timeTruckToPickupToDelivery=timeTruckToPickupToDelivery;
 		this.timeCFPToDelivery=timeCFPToDelivery;
 	}
 
@@ -39,6 +43,23 @@ public class CNPInformResultMessage extends CNPMessage {
 		this.timeCFPToDelivery = timeCFPToDelivery;
 	}
 	
+	public long getTimeTruckToPickup() {
+		return timeTruckToPickup;
+	}
+
+	public void setTimeTruckToPickup(long timeTruckToPickup) {
+		this.timeTruckToPickup = timeTruckToPickup;
+	}
+
+	
+	public long getTimeTruckToPickupToDelivery() {
+		return timeTruckToPickupToDelivery;
+	}
+
+	public void setTimeTruckToPickupToDelivery(long timeTruckToPickupToDelivery) {
+		this.timeTruckToPickupToDelivery = timeTruckToPickupToDelivery;
+	}
+
 	public String toString(){
 		String cnpMessage = super.toString();
 		StringBuffer sb = new StringBuffer();
@@ -49,7 +70,9 @@ public class CNPInformResultMessage extends CNPMessage {
 		sb.append(super.getAuction().getParcel());
 		sb.append(" with a time between pickup and delivery of ");
 		sb.append(timePickupToDelivery);
-		sb.append(" and a time between call for proposal and delivery of ");
+		sb.append(", a time between call for proposal and delivery of ");
+		sb.append(timeTruckToPickup);
+		sb.append(", and a time between call for proposal and delivery of ");
 		sb.append(timeCFPToDelivery);
 		return sb.toString();
 	}
