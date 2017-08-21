@@ -387,7 +387,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 				CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 				System.out.println(cnpProposalMessage.toString());
-				sendDirectProposalMessage(cnpProposalMessage, auction.getSenderAuction());
+				sendDirectProposalMessage(cnpProposalMessage, auction.getDispatchAgent());
 				// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
 				// the truck can participate in other auctions in the meantime
 			/*} else {
@@ -408,52 +408,54 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		
 		
 		public void doPDP(CNPMessage m, TimeLapse time){
-			//code adapted from Taxi.class in com.github.rinde.rinsim.examples.core.taxi
+			// code adapted from Taxi.class in
+			// com.github.rinde.rinsim.examples.core.taxi
 			long pickupTime = 0;
 			long startTimeTruckMoveToParcel = 0;
 			Parcel curr = m.getAuction().getParcel();
-		    currParcel = Optional.of(curr);
-		    if (!time.hasTimeLeft()) {
-		        return;
-		      }
-		      if (!currParcel.isPresent()) {
-		    	  currParcel = Optional.fromNullable(RoadModels.findClosestObject(
-		  		  roadModel.getPosition(this), roadModel, Parcel.class));
-		      }
-		      
-
-		      if (currParcel.isPresent()) {
-		        if (roadModel.equalPosition(this, currParcel.get())) {
-		        defaultpdpmodel.pickup(this, currParcel.get(), time);
-		        //pickupTime = time.getTime();
-		        pickupTime = System.currentTimeMillis();
-		        System.out.println("PICKUP of parcel "+ currParcel+" by "+this.toString());
-		        } else if (defaultpdpmodel.getContents(this).contains(currParcel.get())) {
-		          if (roadModel.getPosition(this)
-		            .equals(currParcel.get().getDeliveryLocation())) {
-		            defaultpdpmodel.deliver(this, currParcel.get(), time);
-		            //long deliveryTime = time.getTime();
-		            long deliveryTime = System.currentTimeMillis();
-		            System.out.println("DELIVERY of parcel "+ currParcel+" by "+this.toString());
-		            currParcel = Optional.absent();
-					// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
-					sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
-					sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime, startTimeTruckMoveToParcel, m.getTimeSent());
-					// change ParcelState to isDelivered()
-		          } else {
-		            roadModel.moveTo(this, currParcel.get().getDeliveryLocation(), time);
-		          }
-		        } else {
-		          if (roadModel.containsObject(currParcel.get())) {
-		        	  System.out.println("Before move of the truck, position truck is "+this.getPosition());
-			          startTimeTruckMoveToParcel = System.currentTimeMillis();
-		        	  roadModel.moveTo(this, currParcel.get(), time);
-		        	  System.out.println("After move of the truck, position truck is "+this.getPosition()+ " and position parcel " +currParcel.get().getPickupLocation());
-		          } else {
-		        	  currParcel = Optional.absent();
-		          }
-		        }
-		      }
+			currParcel = Optional.of(curr);
+			if (!time.hasTimeLeft()) {
+				return;
+			}
+			if (!currParcel.isPresent()) {
+				currParcel = Optional
+						.fromNullable(RoadModels.findClosestObject(roadModel.getPosition(this), roadModel, Parcel.class));
+			}
+	
+			if (currParcel.isPresent()) {
+				if (roadModel.equalPosition(this, currParcel.get())) {
+					defaultpdpmodel.pickup(this, currParcel.get(), time);
+					// pickupTime = time.getTime();
+					pickupTime = System.currentTimeMillis();
+					System.out.println("PICKUP of parcel " + currParcel + " by " + this.toString());
+				} else if (defaultpdpmodel.getContents(this).contains(currParcel.get())) {
+					if (roadModel.getPosition(this).equals(currParcel.get().getDeliveryLocation())) {
+						defaultpdpmodel.deliver(this, currParcel.get(), time);
+						// long deliveryTime = time.getTime();
+						long deliveryTime = System.currentTimeMillis();
+						System.out.println("DELIVERY of parcel " + currParcel + " by " + this.toString());
+						currParcel = Optional.absent();
+						// send INFORM_DONE and INFORM_RESULT message to
+						// DispatchAgent that task is finished
+						sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
+						sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime,
+								deliveryTime, startTimeTruckMoveToParcel, m.getTimeSent());
+						// change ParcelState to isDelivered()
+					} else {
+						roadModel.moveTo(this, currParcel.get().getDeliveryLocation(), time);
+					}
+				} else {
+					if (roadModel.containsObject(currParcel.get())) {
+						System.out.println("Before move of the truck, position truck is " + this.getPosition());
+						startTimeTruckMoveToParcel = System.currentTimeMillis();
+						roadModel.moveTo(this, currParcel.get(), time);
+						System.out.println("After move of the truck, position truck is " + this.getPosition()
+								+ " and position parcel " + currParcel.get().getPickupLocation());
+					} else {
+						currParcel = Optional.absent();
+					}
+				}
+			}
 		      
 		      
 		      
@@ -524,18 +526,18 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		 * send messages from TruckAgent to DispatchAgent
 		 */
 		public void sendRefusal(Auction auction, String refusalReason, TimeLapse timeLapse){
-			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getSenderAuction(), refusalReason, timeLapse.getTime());
-			sendDirectRefusalMessage(cnpRefusalMessage, auction.getSenderAuction());	
+			CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getDispatchAgent(), refusalReason, timeLapse.getTime());
+			sendDirectRefusalMessage(cnpRefusalMessage, auction.getDispatchAgent());	
 		}
 		
 		public void sendFailure(Auction auction, ContractNetMessageType t, TimeLapse timeLapse){
-			CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, t, this, auction.getSenderAuction(), t.toString(), timeLapse.getTime());
-			sendDirectFailureMessage(cnpFailureMessage, auction.getSenderAuction());
+			CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, t, this, auction.getDispatchAgent(), t.toString(), timeLapse.getTime());
+			sendDirectFailureMessage(cnpFailureMessage, auction.getDispatchAgent());
 		}
 
 		public void sendInformDone(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
-			CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getSenderAuction(), timeLapse.getTime());
-			sendDirectInformDoneMessage(cnpInformDoneMessage, auction.getSenderAuction());	
+			CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getDispatchAgent(), timeLapse.getTime());
+			sendDirectInformDoneMessage(cnpInformDoneMessage, auction.getDispatchAgent());	
 		}
 
 		public void sendInformResult(Auction auction, ContractNetMessageType type, TimeLapse timeLapse, long pickupTime, long deliveryTime, long truckStartTime, long CFPTimeSent){
@@ -543,8 +545,8 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			long timeTruckToPickup = pickupTime - truckStartTime;
 			long timeTruckToPickupToDelivery =deliveryTime - truckStartTime;
 			long timeCFPToDelivery=deliveryTime - CFPTimeSent;
-			CNPInformResultMessage cnpInformResultMessage = new CNPInformResultMessage(auction, type, this, auction.getSenderAuction(), timeTruckToPickup, timePickupToDelivery, timeTruckToPickupToDelivery, timeCFPToDelivery, timeLapse.getTime());
-			sendDirectInformResultMessage(cnpInformResultMessage, auction.getSenderAuction());	
+			CNPInformResultMessage cnpInformResultMessage = new CNPInformResultMessage(auction, type, this, auction.getDispatchAgent(), timeTruckToPickup, timePickupToDelivery, timeTruckToPickupToDelivery, timeCFPToDelivery, timeLapse.getTime());
+			sendDirectInformResultMessage(cnpInformResultMessage, auction.getDispatchAgent());	
 			System.out.println("INFORM RESULT sent: " +cnpInformResultMessage.toString());
 		}
 		

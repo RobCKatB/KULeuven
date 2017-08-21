@@ -1,5 +1,7 @@
 package contract_net;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.widgets.DateTime;
@@ -11,17 +13,19 @@ public class Auction {
     private int auctionId;
 	private DispatchAgent dispatchAgent;
 	private Parcel parcel;
-	private long auctionDuration;
-	private boolean activeAuction;
+	private long duration;
+	private boolean active;
 	private long startTime;
+	private ArrayList<Proposal> proposals = new ArrayList<Proposal>();
+	private ArrayList<Proposal> tooLateProposals = new ArrayList<Proposal>();
 
 	public Auction(DispatchAgent dispatchAgent, Parcel parcel, long startTime, long deadline, boolean activeAuction){
 		this.auctionId = generateAuctionId();
 		this.dispatchAgent = dispatchAgent;
 		this.parcel = parcel;	
 		this.startTime = startTime;
-		this.auctionDuration = deadline;
-		this.activeAuction = activeAuction;
+		this.duration = deadline;
+		this.active = activeAuction;
 	}
 	
 	public int getId(){
@@ -48,13 +52,13 @@ public class Auction {
 	}
 
 
-	public long getAuctionDuration() {
-		return auctionDuration;
+	public long getDuration() {
+		return duration;
 	}
 
 
 	public void setAuctionDuration(long deadline) {
-		this.auctionDuration = deadline;
+		this.duration = deadline;
 	}
 
 
@@ -66,19 +70,14 @@ public class Auction {
 	public int generateAuctionId() {
 		return uniqueId.getAndIncrement();
 	}
-
-
-	public DispatchAgent getSenderAuction(){
-		return dispatchAgent;
-	}
 	
-	public boolean isActiveAuction() {
-		return activeAuction;
+	public boolean isActive() {
+		return active;
 	}
 
 
-	public void setActiveAuction(boolean activeAuction) {
-		this.activeAuction = activeAuction;
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 
@@ -96,6 +95,26 @@ public class Auction {
 		this.auctionId = auctionId;
 	}
 	
+	public void addProposal(Proposal proposal, long time) {
+		if(!this.isExpired(time)){
+			this.proposals.add(proposal);
+		}else{
+			this.tooLateProposals.add(proposal);
+		}
+	}
+	
+	public ArrayList<Proposal> getProposals() {
+		return proposals;
+	}
+
+	public ArrayList<Proposal> getTooLateProposals() {
+		return tooLateProposals;
+	}
+	
+	public boolean isExpired(long time) {
+		return time - this.startTime > this.duration;
+	}
+
 	@Override
 	public String toString() {
 		 StringBuilder builder = new StringBuilder("Auction|")
@@ -107,10 +126,10 @@ public class Auction {
 					.append(",")
 					.append("starttime: ").append(getStartTime())
 					.append(",")
-					.append("duration: ").append(getAuctionDuration())
+					.append("duration: ").append(getDuration())
 					.append(",");
 		 
-		if(isActiveAuction()){
+		if(isActive()){
 			builder.append("active");
 		}else{
 			builder.append("inachtive");

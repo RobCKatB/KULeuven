@@ -20,9 +20,12 @@ package contract_net;
 import static com.google.common.collect.Maps.newHashMap;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.annotation.Nullable;
 import javax.measure.unit.SI;
 
@@ -62,7 +65,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
-  private static final int NUM_DEPOTS = 2; // our depot is a smartphone app that acts as a dispatching center for the trucks and the parcels
+  private static final int NUM_DEPOTS = 1; // TODO: set op meer dan 1 omdat anders centraal systeem?? -_-"
   private static final int NUM_TRUCKS = 2;
   private static final int NUM_PARCELS = 3;
   private static final int NUM_CHARINGSTATIONS = 2;
@@ -81,7 +84,7 @@ public final class main {
     newHashMap();
   
   private static final long TEST_STOP_TIME = 20 * 60 * 10000;
-  private static final int TEST_SPEED_UP = 1024;
+  private static final int TEST_SPEED_UP = 64;
   
   private main() {}
  
@@ -151,6 +154,7 @@ public final class main {
       RoadModel.class);
     final CommModel commModel = simulator.getModelProvider().getModel(CommModel.class);
     final List<AuctionResult> auctionResultsList;
+    ArrayList<DispatchAgent> dispatchAgents = new ArrayList<DispatchAgent>();
 
     // generate an empty list to store the results of each auction
     AuctionResults auctionResults = new AuctionResults();
@@ -161,6 +165,7 @@ public final class main {
     for (int i = 0; i < NUM_DEPOTS; i++) {
     	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, roadModel, rng, roadModel.getRandomPosition(rng), auctionResultsList);
     	simulator.register(dispatchAgent);
+    	dispatchAgents.add(dispatchAgent);
     }
     
 
@@ -170,12 +175,15 @@ public final class main {
     }
 
     for (int i = 0; i < NUM_PARCELS; i++) {
-      simulator.register(new Customer(
-  	        Parcel.builder(roadModel.getRandomPosition(rng),
-	                roadModel.getRandomPosition(rng))
-	                .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
-	                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
-	                .buildDTO()));
+    	Parcel parcel = Parcel.builder(roadModel.getRandomPosition(rng),
+                roadModel.getRandomPosition(rng))
+                .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
+                .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
+                .build();
+		simulator.register(new Customer(parcel.getDto()));
+		
+		// Assign parcel to random DispatchAgent.
+		dispatchAgents.get(rng.nextInt(dispatchAgents.size())).assignParcel(parcel);
     }
   
     /*
@@ -190,15 +198,27 @@ public final class main {
       public void tick(TimeLapse time) {
         if (time.getStartTime() > endTime) {
           simulator.stop();
-        } else if (rng.nextDouble() < NEW_PARCEL_PROB) {
-          simulator.register(new Customer(
-            Parcel
-              .builder(roadModel.getRandomPosition(rng),
-                roadModel.getRandomPosition(rng))
-              .serviceDuration(SERVICE_DURATION)
-              .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
-              .buildDTO()));
-        }
+        } /*else if (rng.nextDouble() < NEW_PARCEL_PROB) {
+        	Parcel parcel =Parcel.builder(roadModel.getRandomPosition(rng),
+                    roadModel.getRandomPosition(rng))
+                    .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
+                    .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
+                    .build();
+    		simulator.register(new Customer(parcel.getDto()));
+    		
+
+    		// Assign parcel to random DispatchAgent.
+    		Set<DispatchAgent> dispatchAgents = (roadModel.getObjectsOfType(DispatchAgent.class));
+    		int num = rng.nextInt(dispatchAgents.size());
+    		int i = 0;
+    		for (DispatchAgent dispatchAgent : dispatchAgents){
+    		    if(i == num){
+    		    	dispatchAgent.assignParcel(parcel);
+    		    	break;
+    		    }
+    			i++;
+    		}
+        }*/
       }
 
       @Override
