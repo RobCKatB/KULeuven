@@ -65,7 +65,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
-  private static final int NUM_DEPOTS = 1; // TODO: set op meer dan 1 omdat anders centraal systeem?? -_-"
+  private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
   private static final int NUM_PARCELS = 3;
   private static final int NUM_CHARINGSTATIONS = 2;

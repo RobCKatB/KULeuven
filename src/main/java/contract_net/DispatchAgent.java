@@ -211,7 +211,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			parcelsInitial.remove(parcel);
 			parcelsAuctionRunning.add(parcel);
 			
-			System.out.println("Call for proposals sent by dispatchagent "+this+ " for parcel "+parcel+". Auction "+ auction.toString()+ " started at "+currentTime+", auction duration "+auctionDuration);
+			System.out.println(this+" > Send call propposal for "+parcel+". "+ auction.toString());
 		}
 	}
 
@@ -381,28 +381,4 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		this.unreadMessages = unreadMessages;
 	}
 
-	/*
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder("DispatchAgent [");
-				
-		builder
-		.append("parcels: ")
-		.append(toBeDispatchedParcels.size())
-		.append(",")
-		.append("proposals: ")
-		.append(proposals.size())
-		.append(",")
-		.append("tooLateProposals: ")
-		.append(tooLateProposals.size())
-		.append(",")
-		.append("rejectedProposals: ")
-		.append(rejectedProposals.size());
-		
-		
-		
-			  
-		return builder.toString();
-	}
-	*/
 }
