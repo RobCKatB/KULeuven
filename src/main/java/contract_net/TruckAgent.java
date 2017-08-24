@@ -106,6 +106,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		acceptMessageTime = acceptProposalMessage.getTimeSent();
 		acceptedAuction = acceptProposalMessage.getAuction();
 		startTimeTruckMoveToParcel = time.getTime();
+		isIdle = false;
 	}
 	
 	private void drive(TimeLapse time) {
@@ -139,7 +140,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 				
 				System.out.println("DELIVERY of parcel " + currParcel + " by " + this.toString());
 				isCarrying = false;
-				isIdle = false;
+				isIdle = true;
 				currParcel = Optional.absent();
 				afterDelivery(time);
 			}

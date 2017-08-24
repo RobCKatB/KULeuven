@@ -2,27 +2,18 @@ package contract_net;
 
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-
 import org.apache.commons.math3.random.RandomGenerator;
-import org.slf4j.LoggerFactory;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
-import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
-import com.github.rinde.rinsim.core.model.pdp.Container;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
@@ -31,9 +22,7 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.core.model.comm.Message;
-import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 
 
@@ -44,13 +33,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 	private DefaultPDPModel defaultpdpmodel;
 	private RoadModel roadModel;
-	//Optional<RoadModel> roadModel;
-	// stillToBeAssignedParcelss uit simulator halen want Parcels zijn geregistreerd in de simulator
-	private Collection<Parcel> toBeDispatchedParcels;
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
-	//used to record the number of received messages
-	//in this version, we impose the manager to wait till receiving answers from all the contractors
-	private int numberOfreceivedMessages = 0;
 	private AuctionResult auctionResult;
 	private List<AuctionResult> auctionResults;
 	private long currentTime;
@@ -76,7 +59,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		super(position);
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
 		this.roadModel = roadModel; // defined in the main
-		toBeDispatchedParcels = new ArrayList<Parcel>();
+		new ArrayList<Parcel>();
 		this.auctionResults = auctionResults;
 		commDevice = Optional.absent();
 		//range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
@@ -142,7 +125,8 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		}
 		
 		// Send accept and reject proposal messages for each running auction that is done.
-		for (Parcel parcel: parcelsAuctionRunning){
+		HashSet<Parcel> toBeClosedAuctionParcels = (HashSet<Parcel>) parcelsAuctionRunning.clone();
+		for (Parcel parcel: toBeClosedAuctionParcels){
 			Auction auction = auctions.get(parcel);
 			
 			if(auction.isActive() && auction.isExpired(timeLapse.getEndTime())){
@@ -151,9 +135,16 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 				List<Proposal> tooLateProposalsForThisParcel = auction.getTooLateProposals();
 				if(!validProposalsForThisParcel.isEmpty() || !tooLateProposalsForThisParcel.isEmpty()){
 					sendAcceptRejectProposalMessages(timeLapse, parcel, validProposalsForThisParcel, tooLateProposalsForThisParcel);
+					auction.setActive(false);
+				}else{
+					// Remove the auction
+					auctions.remove(auction);
+					// Place the parcel back in the right set
+					parcelsAuctionRunning.remove(parcel);
+					parcelsInitial.add(parcel);
 				}
 	
-				auction.setActive(false);
+				
 			}
 		}
 	}

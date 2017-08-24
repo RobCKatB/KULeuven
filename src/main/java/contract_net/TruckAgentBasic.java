@@ -38,6 +38,7 @@ public class TruckAgentBasic extends TruckAgent {
 			case ACCEPT_PROPOSAL:
 				if(!currParcel.isPresent()){
 					handleParcel(m, time);
+					currAuction = Optional.absent();
 				}else{
 					// This is impossible in basic mode.
 					assert false; // Throw an error.
