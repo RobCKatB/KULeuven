@@ -141,10 +141,10 @@ public class AuctionResult {
 		sb.append("real time between pickup and delivery: ");
 		sb.append(realTimePickupToDelivery);
 		sb.append("\n"); 
-		sb.append("truck tardiness between pickup and delivery: ");
-		sb.append(realTimePickupToDelivery);
-		sb.append("\n"); 
 		sb.append("real time needed by truck for full pickup and delivery task: ");
+		sb.append(realTimeTruckToPickupToDelivery);
+		sb.append("\n"); 
+		sb.append("truck tardiness between pickup and delivery: ");
 		sb.append(getDeliveryTardiness(bestProposal, realTimePickupToDelivery));
 		sb.append("\n"); 
 		sb.append("total overtime for full pickup and delivery task: ");

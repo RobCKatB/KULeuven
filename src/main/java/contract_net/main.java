@@ -18,9 +18,15 @@ package contract_net;
  */
 
 import static com.google.common.collect.Maps.newHashMap;
+
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +163,7 @@ public final class main {
     ArrayList<DispatchAgent> dispatchAgents = new ArrayList<DispatchAgent>();
 
     // generate an empty list to store the results of each auction
-    AuctionResults auctionResults = new AuctionResults();
+    final AuctionResults auctionResults = new AuctionResults();
     auctionResultsList = auctionResults.getAuctionResults();
     
     // add depots, trucks and parcels to simulator
@@ -197,6 +203,9 @@ public final class main {
       @Override
       public void tick(TimeLapse time) {
         if (time.getStartTime() > endTime) {
+          System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
+          	      .getStatistics());
+          writeToTxt(auctionResults.getAuctionResults());
           simulator.stop();
         } /*else if (rng.nextDouble() < NEW_PARCEL_PROB) {
         	Parcel parcel =Parcel.builder(roadModel.getRandomPosition(rng),
@@ -206,7 +215,6 @@ public final class main {
                     .build();
     		simulator.register(new Customer(parcel.getDto()));
     		
-
     		// Assign parcel to random DispatchAgent.
     		Set<DispatchAgent> dispatchAgents = (roadModel.getObjectsOfType(DispatchAgent.class));
     		int num = rng.nextInt(dispatchAgents.size());
@@ -302,5 +310,52 @@ public final class main {
 
     @Override
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+  }
+  
+  //TODO: now only auctions with a proposal from a truckagent are added to auctionResulst, we also have to add the auctions without a proposal from a truckagent with value null for proposal and other inexisting values
+  public static void writeToTxt(List<AuctionResult> auctionResults) {
+	  PrintWriter writer = null;
+	  try {
+		  // generate a unique name for each experiment
+		  String logFileName = new SimpleDateFormat("yyyyMMddHHmm'.txt'").format(new Date());
+		  writer = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+		  for(AuctionResult auctionResult: auctionResults){
+			  // auction result data are tab delimited, so we can read them as columns
+			  writer.print(auctionResult.hashCode());
+			  writer.print("\t");
+			  writer.print(auctionResult.getAuction());
+			  writer.print("\t");
+			  writer.print(auctionResult.getWinner());
+			  writer.print("\t");
+			  writer.print(auctionResult.getAuctionDuration());
+			  writer.print("\t");
+			  writer.print(auctionResult.getRealTimeTruckToPickup());
+			  writer.print("\t");
+			  writer.print(auctionResult.getRealTimePickupToDelivery());
+			  writer.print("\t");
+			  writer.print(auctionResult.getRealTimeTruckToPickupToDelivery());
+			  writer.print("\t");
+			  writer.print(auctionResult.getPickupTardiness(auctionResult.getBestProposal(),auctionResult.getRealTimeTruckToPickup()));
+			  writer.print("\t");
+			  writer.print(auctionResult.getDeliveryTardiness(auctionResult.getBestProposal(),auctionResult.getRealTimePickupToDelivery()));
+			  writer.print("\t");
+			  writer.print(auctionResult.getPickupDeliveryTardiness(auctionResult.getBestProposal(),auctionResult.getRealTimeTruckToPickupToDelivery()));
+			  writer.print("\t");
+			  writer.print(auctionResult.getRealTimeCFPDelivery());
+			  writer.print("\t");
+			  //TODO maybe leave away this one
+			  writer.print(auctionResult.getRejectedProposals());
+			  // new line for new auction
+			  writer.println();
+		  }
+	  }
+	  catch (IOException e){
+		  e.printStackTrace();
+	  }
+	  finally {
+		  if(writer !=null){
+			  writer.close();
+		  }
+	  }
   }
 }
