@@ -71,6 +71,8 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
+  public static final Mode mode = Mode.BASIC;
+
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
   private static final int NUM_PARCELS = 3;
@@ -176,8 +178,19 @@ public final class main {
     
 
     for (int i = 0; i < NUM_TRUCKS; i++) {
-    	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
-      simulator.register(truckAgent);
+    	TruckAgent truckAgent = null;
+    	switch(mode){
+    		case BASIC:
+    			truckAgent = new TruckAgentBasic(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
+    			break;
+    		case PARALLEL_AUCTIONS:
+    			truckAgent = new TruckAgentParallel(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
+    			break;
+    		case DRIVING_AUCTIONS:
+    			truckAgent = new TruckAgentDriving(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
+    			break;
+    	}
+    	simulator.register(truckAgent);
     }
 
     for (int i = 0; i < NUM_PARCELS; i++) {
@@ -251,14 +264,12 @@ public final class main {
     View.Builder view = View.builder()
       .with(GraphRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
-        .withImageAssociation(
-        DispatchAgent.class, "/graphics/perspective/tall-building-64.png")
-        .withImageAssociation(
-          TruckAgent.class, "/graphics/flat/small-truck-64.png")
-        .withImageAssociation(
-          Customer.class, "/graphics/perspective/deliverypackage.png")
-      .withImageAssociation(
-    		  ChargingStation.class, "/graphics/perspective/gas-truck-64.png"))
+      .withImageAssociation(DispatchAgent.class, "/graphics/perspective/tall-building-64.png")
+      .withImageAssociation(TruckAgentBasic.class, "/graphics/flat/small-truck-64.png")
+      .withImageAssociation(TruckAgentParallel.class, "/graphics/flat/small-truck-64.png")
+      .withImageAssociation(TruckAgentDriving.class, "/graphics/flat/small-truck-64.png")
+      .withImageAssociation(Customer.class, "/graphics/perspective/deliverypackage.png")
+      .withImageAssociation(ChargingStation.class, "/graphics/perspective/gas-truck-64.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))
       .withTitleAppendix("PDP Demo");
 

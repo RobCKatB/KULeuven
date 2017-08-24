@@ -99,12 +99,11 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 				case REFUSE:
 					// do nothing
 					CNPRefusalMessage cnpRefusalMessage = (CNPRefusalMessage)m;
-					System.out.println("REFUSAL MESSAGE sent by truckagent "+ cnpRefusalMessage.from() + " for auction "+ cnpRefusalMessage.getAuction().toString());
 					break;
 				case PROPOSE:
 					CNPProposalMessage cnpProposalMessage = (CNPProposalMessage)m;
 					Auction auction = cnpProposalMessage.getAuction();
-					System.out.println("proposal from truckagent "+ cnpProposalMessage.getSender()+ "is " +cnpProposalMessage.getProposal().toString());
+//					System.out.println("proposal from truckagent "+ cnpProposalMessage.getSender()+ "is " +cnpProposalMessage.getProposal().toString());
 
 					auction.addProposal(cnpProposalMessage.getProposal(), cnpProposalMessage.getTimeSent());
 					
@@ -280,14 +279,14 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		List<Proposal> rejectedProposalsForThisParcel = new ArrayList<Proposal>();
 		if(bestProp != null){
 			sendAcceptProposal(bestProp.getAuction(), bestProp, ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
-			System.out.println("ACCEPT proposal sent by dispatchagent " + this+ " to truckagent " +bestProp.getProposer());
+			System.out.println(this+" > ACCEPT proposal sent to truck "+bestProp.getProposer());
 		} else {
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
 			for(Proposal p: validProposalsForThisParcel){
 				if(!p.equals(bestProp)){
 					rejectedProposalsForThisParcel.add(p);
 					sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
-					System.out.println("REJECT proposal sent by dispatchagent " + this+ " to truckagent " +p.getProposer());
+					System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer());
 				}
 			}
 		}

@@ -13,34 +13,25 @@ import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
-import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
-import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.math.DoubleMath;
 
 
-public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
+public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 //	private static final Logger LOGGER = LoggerFactory
 //			    .getLogger(RouteFollowingVehicle.class);
 	private Queue<Point> path;
 	private Optional<CommDevice> commDevice;
-	private Optional<Parcel> currParcel;
+	protected Optional<Parcel> currParcel;
 	private int capacity;
-	private Point startPosition;
-    private double energy;
+	private double energy;
 
 	private DefaultPDPModel defaultpdpmodel;
 	private RoadModel roadModel;
@@ -59,18 +50,15 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	private final RandomGenerator rng;
 
 	// state of TruckAgent
-    private boolean isCharging;
-    private boolean isIdle;
-    private boolean isMoving;
+    protected boolean isCharging;
+    protected boolean isIdle;
     private boolean isCarrying;
-    private boolean isPickingUp;
-    private boolean isDelivering;
-	    
-	private Optional<ChargingStation> chargingStation = Optional.absent();
-	private long startTimeTruckMoveToParcel;
+    
+    private Optional<ChargingStation> chargingStation = Optional.absent();
+	protected long startTimeTruckMoveToParcel;
 	private long pickupTime;
-	private long acceptMessageTime;
-	private Auction acceptedAuction;
+	protected long acceptMessageTime;
+	protected Auction acceptedAuction;
 	  
 	public TruckAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, Point startPosition, int capacity, RandomGenerator rng){
 		super(VehicleDTO.builder()
@@ -90,10 +78,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		// when you create a new TruckAgent, he is full of charge
 		isCharging = false;
 		isIdle = true;
-		isMoving = false;
 		isCarrying = false;
-		isPickingUp = false;
-		isDelivering = false;
 
 	}
 
@@ -103,7 +88,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		// Process all unread messages
 		List<CNPMessage> unreadMessages = getUnreadMessages();
 		if (!unreadMessages.isEmpty()) {
-//			 System.out.println(this+" > unreadMessages: " + unreadMessages.toString());
 			processMessages(unreadMessages, time);
 		}
 	
@@ -115,42 +99,13 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	
 	}
 	
-	private void processMessages(List<CNPMessage> messages, TimeLapse time){
-		for (CNPMessage m : messages) {
-			
-			switch (m.getType()) {
-
-			case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
-			    // TruckAgents can participate in auctions when they are IDLE (not occupied by anything else) and
-			    // if they are not charging
-				if(!isCharging && isIdle){
-					doProposal(this.getPosition().get(), m.getAuction(), this, time);
-				} else {
-					sendRefusal(m.getAuction(), "Charging or busy", time);
-					System.out.println(this+" > refusal sent for "+m.getAuction());
-				}
-				break;
-			case ACCEPT_PROPOSAL:
-				currParcel = Optional.of(m.getAuction().getParcel());
-				acceptMessageTime = m.getTimeSent();
-				acceptedAuction = m.getAuction();
-				startTimeTruckMoveToParcel = time.getTime();
-
-				/*
-				// TODO: add accepted proposal to a List of all accepted proposals for this TruckAgent
-				 * CNPAcceptMessage cnpAccept = (CNPAcceptMessage)m;
-				 * acceptedProposals.add(cnpAccept.getProposal());
-				 * not right since this does not store all acceptedProposals for one TruckAgent, it just stores the acceptedProposal for this auction
-				 */
-
-				break;
-			case REJECT_PROPOSAL:// dispatch agent as rejected the proposal of truckagent
-				// do nothing. The TruckAgent did not win the Auction for a certain package, so currently no tasks for the truck
-				break;
-			default:
-				break;
-			}
-		}
+	protected abstract void processMessages(List<CNPMessage> messages, TimeLapse time);
+	
+	protected void handleParcel(CNPMessage acceptProposalMessage, TimeLapse time){
+		currParcel = Optional.of(acceptProposalMessage.getAuction().getParcel());
+		acceptMessageTime = acceptProposalMessage.getTimeSent();
+		acceptedAuction = acceptProposalMessage.getAuction();
+		startTimeTruckMoveToParcel = time.getTime();
 	}
 	
 	private void drive(TimeLapse time) {
@@ -184,10 +139,14 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				
 				System.out.println("DELIVERY of parcel " + currParcel + " by " + this.toString());
 				isCarrying = false;
+				isIdle = false;
 				currParcel = Optional.absent();
+				afterDelivery(time);
 			}
 		}
 	}
+
+	protected abstract void afterDelivery(TimeLapse time);
 
 	private void sendDirectMessage(CNPMessage content, CommUser recipient) {
 		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
@@ -417,7 +376,7 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 			proposals.add(proposal);//TruckAgent stays Idle while in auction, so he can participate in other auctions
 			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
-			System.out.println(cnpProposalMessage.toString());
+//			System.out.println(cnpProposalMessage.toString());
 			sendDirectProposalMessage(cnpProposalMessage, auction.getDispatchAgent());
 			// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
 			// the truck can participate in other auctions in the meantime
