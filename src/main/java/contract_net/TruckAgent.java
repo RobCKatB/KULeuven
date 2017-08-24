@@ -51,21 +51,26 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	private static final double ENERGYCAPACITY = 1000d;
 
 	// for CommUser
-	  private final double range;
-	  private final double reliability = 1.0D;
-	  static final double MIN_RANGE = .2;
-	  static final double MAX_RANGE = 1.5;
-	  static final long LONELINESS_THRESHOLD = 10 * 1000;
-	  private final RandomGenerator rng;
+	private final double range;
+	private final double reliability = 1.0D;
+	static final double MIN_RANGE = .2;
+	static final double MAX_RANGE = 1.5;
+	static final long LONELINESS_THRESHOLD = 10 * 1000;
+	private final RandomGenerator rng;
 
 	// state of TruckAgent
-	    private boolean isCharging;
-	    private boolean isIdle;
-	    private boolean isMoving;
-	    private boolean isPickingUp;
-	    private boolean isDelivering;
+    private boolean isCharging;
+    private boolean isIdle;
+    private boolean isMoving;
+    private boolean isCarrying;
+    private boolean isPickingUp;
+    private boolean isDelivering;
 	    
 	private Optional<ChargingStation> chargingStation = Optional.absent();
+	private long startTimeTruckMoveToParcel;
+	private long pickupTime;
+	private long acceptMessageTime;
+	private Auction acceptedAuction;
 	  
 	public TruckAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, Point startPosition, int capacity, RandomGenerator rng){
 		super(VehicleDTO.builder()
@@ -85,22 +90,26 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 		// when you create a new TruckAgent, he is full of charge
 		isCharging = false;
 		isIdle = true;
+		isMoving = false;
+		isCarrying = false;
 		isPickingUp = false;
 		isDelivering = false;
-		isMoving = false;
 
 	}
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
 
+		// Process all unread messages
 		List<CNPMessage> unreadMessages = getUnreadMessages();
 		if (!unreadMessages.isEmpty()) {
 //			 System.out.println(this+" > unreadMessages: " + unreadMessages.toString());
 			processMessages(unreadMessages, time);
 		}
 	
-		if(!isIdle&&!isCharging&&isMoving){
+		// If carrying a parcel
+		if(currParcel.isPresent()){
+			// drive to destination
 			drive(time);
 		}
 	
@@ -122,7 +131,10 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 				}
 				break;
 			case ACCEPT_PROPOSAL:
-				doPDP(m, time);
+				currParcel = Optional.of(m.getAuction().getParcel());
+				acceptMessageTime = m.getTimeSent();
+				acceptedAuction = m.getAuction();
+				startTimeTruckMoveToParcel = time.getTime();
 
 				/*
 				// TODO: add accepted proposal to a List of all accepted proposals for this TruckAgent
@@ -142,9 +154,39 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 	}
 	
 	private void drive(TimeLapse time) {
-		Optional<Point> oldPosition = this.getPosition();
-		roadModel.moveTo(this, currParcel.get(), time);
-		System.out.println(this+" > moved from "+oldPosition.get()+" to "+this.getPosition().get());
+		if(!isCarrying){
+			// Drive to pickup location
+			Optional<Point> oldPosition = this.getPosition();
+			roadModel.moveTo(this, currParcel.get(), time);
+			
+			//Pickup?
+			if (roadModel.equalPosition(this, currParcel.get())) {
+				defaultpdpmodel.pickup(this, currParcel.get(), time);
+				pickupTime = time.getTime();
+				isCarrying = true;
+				System.out.println(this+" > PICKUP of parcel " + currParcel);
+			}
+		}else{
+			// Drive to destination
+			Optional<Point> oldPosition = this.getPosition();
+			roadModel.moveTo(this, currParcel.get().getDeliveryLocation(), time);
+			
+			// Dropoff?
+			if (roadModel.getPosition(this).equals(currParcel.get().getDeliveryLocation())) {
+				defaultpdpmodel.deliver(this, currParcel.get(), time);
+				long deliveryTime = time.getTime();
+				// send INFORM_DONE and INFORM_RESULT message to
+				// DispatchAgent that task is finished
+				sendInformDone(acceptedAuction, ContractNetMessageType.INFORM_DONE, time);
+				sendInformResult(acceptedAuction, ContractNetMessageType.INFORM_RESULT, time, pickupTime,
+						deliveryTime, startTimeTruckMoveToParcel, acceptMessageTime);
+
+				
+				System.out.println("DELIVERY of parcel " + currParcel + " by " + this.toString());
+				isCarrying = false;
+				currParcel = Optional.absent();
+			}
+		}
 	}
 
 	private void sendDirectMessage(CNPMessage content, CommUser recipient) {
@@ -395,116 +437,6 @@ public class TruckAgent extends Vehicle implements CommUser, MovingRoadUser {
 
 	}
 	
-	
-	public void doPDP(CNPMessage m, TimeLapse time){
-		// code adapted from Taxi.class in
-		// com.github.rinde.rinsim.examples.core.taxi
-		long pickupTime = 0;
-		long startTimeTruckMoveToParcel = time.getTime();
-		Parcel curr = m.getAuction().getParcel();
-		currParcel = Optional.of(curr);
-		if (!time.hasTimeLeft()) {
-			return;
-		}
-
-		if (currParcel.isPresent()) {
-			if (roadModel.equalPosition(this, currParcel.get())) {
-				defaultpdpmodel.pickup(this, currParcel.get(), time);
-				// pickupTime = time.getTime();
-				pickupTime = time.getTime();
-
-				startTimeTruckMoveToParcel = time.getTime();
-				System.out.println("PICKUP of parcel " + currParcel + " by " + this.toString());
-			} else if (defaultpdpmodel.getContents(this).contains(currParcel.get())) {
-				if (roadModel.getPosition(this).equals(currParcel.get().getDeliveryLocation())) {
-					defaultpdpmodel.deliver(this, currParcel.get(), time);
-					// long deliveryTime = time.getTime();
-					long deliveryTime = System.currentTimeMillis();
-					System.out.println("DELIVERY of parcel " + currParcel + " by " + this.toString());
-					currParcel = Optional.absent();
-					// send INFORM_DONE and INFORM_RESULT message to
-					// DispatchAgent that task is finished
-					sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
-					sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime,
-							deliveryTime, startTimeTruckMoveToParcel, m.getTimeSent());
-					// change ParcelState to isDelivered()
-				} else {
-					roadModel.moveTo(this, currParcel.get().getDeliveryLocation(), time);
-				}
-			} else {
-				if (roadModel.containsObject(currParcel.get())) {
-					drive(time);
-					
-				} else {
-					currParcel = Optional.absent();
-				}
-			}
-		}
-	      
-	      
-	      
-		/*
-		isIdle = false;
-		//move from current position to parcel 
-		Point truckPosition = this.getPosition().get();
-		Point pickupLocation = m.getAuction().getParcel().getPickupLocation();
-		System.out.println("Before move: postion truck "+truckPosition+ " and positon parcel to be picked up "+pickupLocation);
-		isMoving = true;
-		MoveProgress progress = roadModel.moveTo(this, pickupLocation, time);
-		System.out.println("After move: postion truck "+this.getPosition()+ " and positon parcel to be picked up "+pickupLocation);
-		consumeEnergy(calculateEnergyConsumption(progress.distance().getValue()));
-		
-		//pickup
-		long pickupTime = time.getTime();
-
-			isMoving = false;
-			isPickingUp = true;
-			defaultpdpmodel.pickup(this, m.getAuction().getParcel(), time); // status of parcel will be changed to PICKING_UP
-			System.out.println("Truckagent " + this + " is picking up parcel " + m.getAuction().getParcel() + " at location " +m.getAuction().getParcel().getPickupLocation() + " and at time " +time);
-			// TODO??? wachten tot pickup klaar is: zit eigenlijk in continuePreviousActions
-			// move from parcel pickup to parcel delivery location
-			isPickingUp = false;
-			// change ParcelState to isPickedUp()
-			defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isPickedUp();
-
-		//delivery
-		long deliveryTime = 0;
-		if(defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isPickedUp()){
-			roadModel.moveTo((MovingRoadUser)this, m.getAuction().getParcel().getDeliveryLocation(), time);
-			System.out.println("Truckagent " + this + " is moving to the delivery location of parcel " + m.getAuction().getParcel() + " at time " +time);
-			isMoving=true;
-			//TODO decrease fuel level
-			deliveryTime = time.getTime();
-			isMoving = false;
-			defaultpdpmodel.deliver(this, m.getAuction().getParcel(), time); // status of parcel will be changed to DELIVERING
-			isDelivering = true;
-			System.out.println("Truckagent " + this + " is delivering parcel " + m.getAuction().getParcel() + " at delivery location " + m.getAuction().getParcel().getDeliveryLocation() +" at time "+ time);
-			// we suppose that the truck stays at the last delivery place until a new PDP task is accepted
-			// TODO??? wachten tot deliver klaar is: zit eigenlijk in continuePreviousActions
-			//defaultpdpmodel.continuePreviousActions(this, time); // continues with task if it is not finished in previous tick, but we cannot access it since it is protected
-
-			// send INFORM_DONE and INFORM_RESULT message to DispatchAgent that task is finished
-			sendInformDone(m.getAuction(), ContractNetMessageType.INFORM_DONE, time);
-			
-			sendInformResult(m.getAuction(), ContractNetMessageType.INFORM_RESULT, time, pickupTime, deliveryTime);
-			// change ParcelState to isDelivered()
-			defaultpdpmodel.getParcelState(m.getAuction().getParcel()).isDelivered();
-			// put vehicle state back on Idle such that the truck can participate in new auctions
-			isIdle = false; 
-		}
-
-
-		
-		//update AuctionResult class with calculated PDP times
-		AuctionResult auctionresult = m.getAuction().getDispatchAgent().getAuctionResult();
-		auctionresult.setTimeCFPDelivery(deliveryTime - pickupTime);
-		auctionresult.setTimePickupDelivery(deliveryTime - m.getAuction().getStartTime());
-		*/
-		//TODO when PDP is finished, check whether there is still more energy than the energy needed to go to the charging station
-		// it there is only sufficient energy to go to charging station, go to charging station an change status of TruckAgent to TO_CHARGING
-		
-		// TODO make list like in continuePreviousActions, to continue actions that did not finish in the current tick
-	}
 	
 	/*
 	 * send messages from TruckAgent to DispatchAgent

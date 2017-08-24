@@ -180,10 +180,11 @@ public final class main {
                 .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
                 .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
                 .build();
-		simulator.register(new Customer(parcel.getDto()));
+    	Customer cust = new Customer(parcel.getDto());
+		simulator.register(cust);
 		
 		// Assign parcel to random DispatchAgent.
-		dispatchAgents.get(rng.nextInt(dispatchAgents.size())).assignParcel(parcel);
+		dispatchAgents.get(rng.nextInt(dispatchAgents.size())).assignParcel(cust);
     }
   
     /*

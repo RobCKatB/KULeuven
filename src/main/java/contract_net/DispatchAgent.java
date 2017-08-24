@@ -317,10 +317,10 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	}
 	
 	 
-		public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser, String rejectionReasen, TimeLapse time){
-			CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, rejectionReasen, time.getTime());
-			sendDirectMessage(cnpRejectMessage, loser);
-		}
+	public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser, String rejectionReasen, TimeLapse time){
+		CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, rejectionReasen, time.getTime());
+		sendDirectMessage(cnpRejectMessage, loser);
+	}
 
 
 	public AuctionResult getAuctionResult() {
