@@ -85,13 +85,13 @@ public final class main {
 
   private static final int SPEED_UP = 4;
   private static final int MAX_CAPACITY = 3;
-  private static final double NEW_PARCEL_PROB = .007; //TODO op .007 zetten 
+  private static final double NEW_PARCEL_PROB = .00007; //TODO op .007 zetten 
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
     newHashMap();
   
-  private static final long TEST_STOP_TIME = 20 * 60 * 10000;
+  private static final long TEST_STOP_TIME = 2000 * 60 * 10000;
   private static final int TEST_SPEED_UP = 64;
   
   private main() {}
@@ -221,13 +221,14 @@ public final class main {
           	      .getStatistics());
           writeToTxt(auctionResults.getAuctionResults());
           simulator.stop();
-        } /*else if (rng.nextDouble() < NEW_PARCEL_PROB) {
+        } else if (rng.nextDouble() < NEW_PARCEL_PROB) {
         	Parcel parcel =Parcel.builder(roadModel.getRandomPosition(rng),
                     roadModel.getRandomPosition(rng))
                     .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
                     .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
                     .build();
-    		simulator.register(new Customer(parcel.getDto()));
+        	Customer cust = new Customer(parcel.getDto());
+    		simulator.register(cust);
     		
     		// Assign parcel to random DispatchAgent.
     		Set<DispatchAgent> dispatchAgents = (roadModel.getObjectsOfType(DispatchAgent.class));
@@ -235,12 +236,12 @@ public final class main {
     		int i = 0;
     		for (DispatchAgent dispatchAgent : dispatchAgents){
     		    if(i == num){
-    		    	dispatchAgent.assignParcel(parcel);
+    		    	dispatchAgent.assignParcel(cust);
     		    	break;
     		    }
     			i++;
     		}
-        }*/
+        }
       }
 
       @Override
