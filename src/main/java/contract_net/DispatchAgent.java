@@ -276,13 +276,13 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			sendAcceptProposal(bestProp.getAuction(), bestProp, ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
 			System.out.println(this+" > ACCEPT proposal sent to truck "+bestProp.getProposer());
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
-						for(Proposal p: validProposalsForThisParcel){
-							if(!p.equals(bestProp)){
-								rejectedProposalsForThisParcel.add(p);
-								sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
-								System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer());
-							}
-						}
+			for(Proposal p: validProposalsForThisParcel){
+				if(!p.equals(bestProp)){
+					rejectedProposalsForThisParcel.add(p);
+					sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
+					System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer());
+				}
+			}
 		}
 		else{
 			System.out.println("ERROR: no best proposal, best proposal is empty");

@@ -29,6 +29,8 @@ public class TruckAgentBasic extends TruckAgent {
 				if(!isCharging && isIdle && !currAuction.isPresent()){
 					doProposal(this.getPosition().get(), m.getAuction(), this, time);
 					currAuction = Optional.of(m.getAuction());
+					// in the basic version of CNP, a truckagent becomes idle once he is participating in an auction
+					this.isIdle = false;
 					System.out.println(this+" > proposal sent for "+m.getAuction());
 				} else {
 					sendRefusal(m.getAuction(), "Charging or busy", time);
