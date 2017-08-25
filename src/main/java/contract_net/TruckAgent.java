@@ -379,8 +379,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 //			System.out.println(cnpProposalMessage.toString());
 			sendDirectProposalMessage(cnpProposalMessage, auction.getDispatchAgent());
-			// in the basic version of CNP, a truckagent becomes idle once he is participating in an auction
-			this.isIdle = false;
+			
 	
 		/*} else {
 			//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
