@@ -56,7 +56,7 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 	 * 			True if success, false otherwise.
 	 */
 	public boolean tryDock(TruckAgent truck){
-		if(/*!this.isBusy() && */checkTruckPosition(truck)){
+		if(!this.isBusy() && checkTruckPosition(truck)){
 			dockedVehicle = Optional.of(truck);
 			return true;
 		}else{
