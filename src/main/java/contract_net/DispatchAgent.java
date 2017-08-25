@@ -284,6 +284,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 							}
 						}
 		}
+		else{
+			System.out.println("ERROR: no best proposal, best proposal is empty");
+		}
 		// send REJCECT_PROPOSAL message to all TruckAgent who sent their proposal for this parcel after the auction deadline had passed, i.e. the non valid proposals
 		for(Proposal p: tooLateProposalsForThisParcel){
 			rejectedProposalsForThisParcel.add(p);
