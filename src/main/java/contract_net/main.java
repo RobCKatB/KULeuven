@@ -96,7 +96,6 @@ public final class main {
   
   private main() {}
  
-
   /**
    * Starts the {@link main}.
    * @param args The first option may optionally indicate the end time of the
