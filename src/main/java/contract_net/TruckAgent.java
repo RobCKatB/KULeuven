@@ -52,7 +52,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	// state of TruckAgent
     protected boolean isCharging;
     protected boolean isIdle;
-    private boolean isCarrying;
+    protected boolean isCarrying;
     
     private Optional<ChargingStation> chargingStation = Optional.absent();
 	protected long startTimeTruckMoveToParcel;
@@ -235,12 +235,15 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		return calculatePDPDistanceCurrentToPickup(currentTruckPosition, parcel) + calculatePDPDistancePickupToDelivery(currentTruckPosition, parcel);
 	}
 	
-	private double calculatePDPDistanceCurrentToPickup(Point currentTruckPosition, Parcel parcel){
+	/*
+	 * This method will be overwritten in TruckAgentDriving.
+	 */
+	protected double calculatePDPDistanceCurrentToPickup(Point currentTruckPosition, Parcel parcel){
 		double currentToPickup = calculatePointToPointDistance(currentTruckPosition, parcel.getPickupLocation());
 		return currentToPickup;
 	}
 	
-	public double calculatePDPDistancePickupToDelivery(Point currentTruckPosition, Parcel parcel){
+	private double calculatePDPDistancePickupToDelivery(Point currentTruckPosition, Parcel parcel){
 		double pickupToDelivery = calculatePointToPointDistance(parcel.getPickupLocation(), parcel.getDeliveryLocation());
 		return pickupToDelivery;
 	}
@@ -248,7 +251,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	/*
 	 * calculate edge distance between two points in a graph
 	 */
-	public double calculatePointToPointDistance(Point start, Point end){
+	protected double calculatePointToPointDistance(Point start, Point end){
 		List<Point> fromStartToEnd = this.getRoadModel().getShortestPathTo(start, end);
 		// make the sum of the vertices in the graph, from the first till the last point in the path
 		double fromStartToEndLength = 0.0;
@@ -271,14 +274,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		return time;
 	}
 	
-	public long calculateTravelTimePDPCurrentToPickup(Point currentTruckPosition, Parcel parcel){
+	private long calculateTravelTimePDPCurrentToPickup(Point currentTruckPosition, Parcel parcel){
 		double shortestDistance = calculatePDPDistanceCurrentToPickup(currentTruckPosition, parcel);
 		long time = (long) (shortestDistance/SPEED);
 		// TODO?? somehow we need to change the value of serviceDuration(SERVICE_DURATION), or we have to remove this from the main
 		return time;
 	}
 	
-	public long calculateTravelTimePDPPickupToDelivery(Point currentTruckPosition, Parcel parcel){
+	private long calculateTravelTimePDPPickupToDelivery(Point currentTruckPosition, Parcel parcel){
 		double shortestDistance = calculatePDPDistancePickupToDelivery(currentTruckPosition, parcel);
 		long time = (long) (shortestDistance/SPEED);
 		// TODO?? somehow we need to change the value of serviceDuration(SERVICE_DURATION), or we have to remove this from the main
@@ -367,7 +370,6 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 
 	}
 	
-	
 	/*
 	 * send messages from TruckAgent to DispatchAgent
 	 */
@@ -405,8 +407,8 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	public Optional<Point> getPosition() {
 	    if (roadModel.containsObject(this)) {
 	        return Optional.of(roadModel.getPosition(this));
-	      }
-	      return Optional.absent();
+	    }
+	    return Optional.absent();
 	}
 
 	public List<Proposal> getAcceptedProposals() {

@@ -19,7 +19,7 @@ public class TruckAgentParallel extends TruckAgent {
 	@Override
 	protected void processMessages(List<CNPMessage> messages, TimeLapse time){
 		
-		HashSet <CNPAcceptMessage> acceptProposalMessages = new HashSet<CNPAcceptMessage>();
+		HashSet<CNPAcceptMessage> acceptProposalMessages = new HashSet<CNPAcceptMessage>();
 		
 		for (CNPMessage m : messages) {
 			
@@ -29,7 +29,7 @@ public class TruckAgentParallel extends TruckAgent {
 				if(!isCharging && isIdle){
 					doProposal(this.getPosition().get(), m.getAuction(), this, time);
 				} else {
-					sendRefusal(m.getAuction(), "Charging or busy", time);
+					sendRefusal(m.getAuction(), "Charging or busy.", time);
 					System.out.println(this+" > refusal sent for "+m.getAuction());
 				}
 				break;
@@ -40,7 +40,7 @@ public class TruckAgentParallel extends TruckAgent {
 					acceptProposalMessages.add(accMessage);
 				}else{
 					// We already have a parcel, cancel this one.
-					sendCancelMessage(m.getAuction(), "Already handeling a parcel", time);
+					sendCancelMessage(m.getAuction(), "Already handeling a parcel.", time);
 				}
 				break;
 				
@@ -79,7 +79,7 @@ public class TruckAgentParallel extends TruckAgent {
 		}
 		
 	}
-
+	
 	@Override
 	protected void afterDelivery(TimeLapse time) {
 		// In parallel mode, the job is done.
