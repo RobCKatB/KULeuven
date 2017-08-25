@@ -374,13 +374,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		//if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
 			// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 			// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
-			proposals.add(proposal);//TruckAgent stays Idle while in auction, so he can participate in other auctions
+			proposals.add(proposal);
 			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 //			System.out.println(cnpProposalMessage.toString());
 			sendDirectProposalMessage(cnpProposalMessage, auction.getDispatchAgent());
-			// VehicleState stays IDLE as long as the proposal is not accepted by the DispatchAgent, what means that
-			// the truck can participate in other auctions in the meantime
+			// in the basic version of CNP, a truckagent becomes idle once he is participating in an auction
+			this.isIdle = false;
+	
 		/*} else {
 			//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
 			isIdle = false;

@@ -132,6 +132,10 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			if(auction.isActive() && auction.isExpired(timeLapse.getEndTime())){
 			
 				List<Proposal> validProposalsForThisParcel = auction.getProposals();
+				System.out.println("Valid proposals for "+ auction);
+				for(Proposal p: validProposalsForThisParcel){
+					System.out.println(p.toString());
+				}
 				List<Proposal> tooLateProposalsForThisParcel = auction.getTooLateProposals();
 				if(!validProposalsForThisParcel.isEmpty() || !tooLateProposalsForThisParcel.isEmpty()){
 					sendAcceptRejectProposalMessages(timeLapse, parcel, validProposalsForThisParcel, tooLateProposalsForThisParcel);
@@ -206,11 +210,11 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	}
 
 	public Proposal selectBestProposal(List<Proposal> proposals){
-		long maxProposal = Long.MIN_VALUE;
+		long minProposal = Long.MAX_VALUE;
 		Proposal bestProposal = null;
 		for(Proposal p: proposals){
-			if (p.getTimeCostProposal() > maxProposal){
-				maxProposal = p.getTimeCostProposal();
+			if (p.getTimeCostProposal() < minProposal){
+				minProposal = p.getTimeCostProposal();
 				bestProposal = p;
 			}
 			
@@ -271,15 +275,14 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		if(bestProp != null){
 			sendAcceptProposal(bestProp.getAuction(), bestProp, ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
 			System.out.println(this+" > ACCEPT proposal sent to truck "+bestProp.getProposer());
-		} else {
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
-			for(Proposal p: validProposalsForThisParcel){
-				if(!p.equals(bestProp)){
-					rejectedProposalsForThisParcel.add(p);
-					sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
-					System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer());
-				}
-			}
+						for(Proposal p: validProposalsForThisParcel){
+							if(!p.equals(bestProp)){
+								rejectedProposalsForThisParcel.add(p);
+								sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
+								System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer());
+							}
+						}
 		}
 		// send REJCECT_PROPOSAL message to all TruckAgent who sent their proposal for this parcel after the auction deadline had passed, i.e. the non valid proposals
 		for(Proposal p: tooLateProposalsForThisParcel){

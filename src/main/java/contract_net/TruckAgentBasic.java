@@ -56,6 +56,7 @@ public class TruckAgentBasic extends TruckAgent {
 				// Dispatch agent has rejected the proposal of truckagent.
 				// Make sure we can participate in a new auction
 				currAuction = Optional.absent();
+				this.isIdle = true;
 
 				break;
 			default:
