@@ -154,36 +154,6 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		CommDevice device = this.commDevice.get();
 		device.send(content, recipient);
 	}
-	
-	private void sendDirectProposalMessage(CNPProposalMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
-	
-	private void sendDirectRefusalMessage(CNPRefusalMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
-	
-	private void sendDirectFailureMessage(CNPFailureMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
-	
-	private void sendDirectInformDoneMessage(CNPInformDoneMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
-	
-	private void sendDirectInformResultMessage(CNPInformResultMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
 
 
 	/* 
@@ -378,7 +348,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 //			System.out.println(cnpProposalMessage.toString());
-			sendDirectProposalMessage(cnpProposalMessage, auction.getDispatchAgent());
+			sendDirectMessage(cnpProposalMessage, auction.getDispatchAgent());
 			
 	
 		/*} else {
@@ -403,17 +373,17 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	 */
 	public void sendRefusal(Auction auction, String refusalReason, TimeLapse timeLapse){
 		CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getDispatchAgent(), refusalReason, timeLapse.getTime());
-		sendDirectRefusalMessage(cnpRefusalMessage, auction.getDispatchAgent());	
+		sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());	
 	}
 	
 	public void sendFailure(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
 		CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, type, this, auction.getDispatchAgent(), type.toString(), timeLapse.getTime());
-		sendDirectFailureMessage(cnpFailureMessage, auction.getDispatchAgent());
+		sendDirectMessage(cnpFailureMessage, auction.getDispatchAgent());
 	}
 
 	public void sendInformDone(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
 		CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getDispatchAgent(), timeLapse.getTime());
-		sendDirectInformDoneMessage(cnpInformDoneMessage, auction.getDispatchAgent());	
+		sendDirectMessage(cnpInformDoneMessage, auction.getDispatchAgent());	
 	}
 
 	public void sendInformResult(Auction auction, ContractNetMessageType type, TimeLapse timeLapse, long pickupTime, long deliveryTime, long truckStartTime, long CFPTimeSent){
@@ -422,8 +392,13 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		long timeTruckToPickupToDelivery =deliveryTime - truckStartTime;
 		long timeCFPToDelivery=deliveryTime - CFPTimeSent;
 		CNPInformResultMessage cnpInformResultMessage = new CNPInformResultMessage(auction, type, this, auction.getDispatchAgent(), timeTruckToPickup, timePickupToDelivery, timeTruckToPickupToDelivery, timeCFPToDelivery, timeLapse.getTime());
-		sendDirectInformResultMessage(cnpInformResultMessage, auction.getDispatchAgent());	
+		sendDirectMessage(cnpInformResultMessage, auction.getDispatchAgent());	
 		System.out.println("INFORM RESULT sent: " +cnpInformResultMessage.toString());
+	}
+	
+	protected void sendCancelMessage(Auction auction, String cancelReason, TimeLapse timeLapse){
+		CNPCancelMessage cnpRefusalMessage = new CNPCancelMessage(auction, ContractNetMessageType.CANCEL, this, auction.getDispatchAgent(), cancelReason, timeLapse.getTime());
+		sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());	
 	}
 	
 	@Override

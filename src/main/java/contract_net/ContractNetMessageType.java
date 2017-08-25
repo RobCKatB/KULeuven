@@ -11,6 +11,7 @@ public enum ContractNetMessageType implements MessageContents {
 		REJECT_PROPOSAL,
 		ACCEPT_PROPOSAL,
 		FAILURE,
+		CANCEL,
 		INFORM_RESULT,
 		INFORM_DONE;
 

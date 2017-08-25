@@ -71,7 +71,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
-  public static final Mode mode = Mode.BASIC;
+  public static final Mode mode = Mode.PARALLEL_AUCTIONS;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;

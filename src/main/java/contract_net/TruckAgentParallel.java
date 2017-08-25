@@ -36,7 +36,7 @@ public class TruckAgentParallel extends TruckAgent {
 					handleParcel(m, time);
 				}else{
 					// We already have a parcel, cancel this one.
-					// TODO: sendCancelMessage();
+					sendCancelMessage(m.getAuction(), "Already handeling a parcel", time);
 				}
 				break;
 				
