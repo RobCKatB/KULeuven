@@ -86,13 +86,13 @@ public final class main {
 
   private static final int SPEED_UP = 4;
   private static final int MAX_CAPACITY = 3;
-  private static final double NEW_PARCEL_PROB = .00007; //TODO op .007 zetten 
+  private static final double NEW_PARCEL_PROB = .0007; //TODO op .007 zetten 
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
     newHashMap();
   
-  private static final long TEST_STOP_TIME = 20 * 60 * 10000;
+  private static final long TEST_STOP_TIME = 200 * 60 * 10000;
   private static final int TEST_SPEED_UP = 64;
   
   private main() {}
@@ -193,18 +193,16 @@ public final class main {
     }
   
 
-    /*
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
     	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), roadModel, rng);
     	simulator.register(chargingStation);
     }
-    */
   
     simulator.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse time) {
     	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
-        if (time.getStartTime() > 10000000) {
+        if (time.getStartTime() > endTime) {
           //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
           //	      .getStatistics());
           System.out.println("END OF TEST");
@@ -320,8 +318,11 @@ public final class main {
 	  PrintWriter writer = null;
 	  try {
 		  // generate a unique name for each experiment
-		  String logFileName = new SimpleDateFormat("yyyyMMddHHmm'.txt'").format(new Date());
-		  writer = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
+		  int counter = 0;
+		  String logFileName = new SimpleDateFormat("yyyyMMddHHmmss'.txt'").format(new Date());
+		  String logNumberFileName = counter+logFileName;
+		  writer = new PrintWriter(new BufferedWriter(new FileWriter(logNumberFileName)));
+		  counter++;
 		  for(AuctionResult auctionResult: auctionResults){
 			  // auction result data are tab delimited, so we can read them as columns
 			  writer.print(da.toString());
