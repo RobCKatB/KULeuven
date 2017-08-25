@@ -97,7 +97,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 					break;
 				case CANCEL:
 					CNPCancelMessage cancelMessage = (CNPCancelMessage)m;
-					System.out.println("CANCEL : "+ cancelMessage.from() + cancelMessage.getAuction());
+					System.out.println("CANCEL : "+ cancelMessage.from() + cancelMessage.getAuction()+cancelMessage.getCancelReason());
 					// Remove the auction
 					auctions.remove(cancelMessage.getAuction());
 					// Place the parcel back in the right set

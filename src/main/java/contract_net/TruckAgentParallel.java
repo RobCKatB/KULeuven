@@ -1,7 +1,7 @@
 package contract_net;
 
+import java.util.HashSet;
 import java.util.List;
-
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -18,6 +18,9 @@ public class TruckAgentParallel extends TruckAgent {
 
 	@Override
 	protected void processMessages(List<CNPMessage> messages, TimeLapse time){
+		
+		HashSet <CNPAcceptMessage> acceptProposalMessages = new HashSet<CNPAcceptMessage>();
+		
 		for (CNPMessage m : messages) {
 			
 			switch (m.getType()) {
@@ -33,7 +36,8 @@ public class TruckAgentParallel extends TruckAgent {
 				
 			case ACCEPT_PROPOSAL:
 				if(!currParcel.isPresent()){
-					handleParcel(m, time);
+					CNPAcceptMessage accMessage = (CNPAcceptMessage)m;
+					acceptProposalMessages.add(accMessage);
 				}else{
 					// We already have a parcel, cancel this one.
 					sendCancelMessage(m.getAuction(), "Already handeling a parcel", time);
@@ -49,6 +53,31 @@ public class TruckAgentParallel extends TruckAgent {
 				break;
 			}
 		}
+		
+		// If we had multiple accept_proposals, look which one of those was
+		// for the best proposal. Cancel the others.
+		if(!acceptProposalMessages.isEmpty()){
+			
+			long bestTimeCost = Long.MAX_VALUE;
+			CNPAcceptMessage bestProposalMessage = null;
+			
+			for(CNPAcceptMessage m: acceptProposalMessages){
+				if(m.getProposal().getTimeCostProposal() < bestTimeCost){
+					bestTimeCost = m.getProposal().getTimeCostProposal();
+					bestProposalMessage = m;
+				}
+			}
+			
+			handleParcel(bestProposalMessage, time);
+			
+			// Cancel the others
+			for(CNPAcceptMessage m: acceptProposalMessages){
+				if(m!=bestProposalMessage){
+					sendCancelMessage(m.getAuction(), "Other proposal was better", time);
+				}
+			}
+		}
+		
 	}
 
 	@Override
