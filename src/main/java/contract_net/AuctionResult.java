@@ -129,6 +129,9 @@ public class AuctionResult {
 		sb.append(" auction winner is truckagent ");
 		sb.append(winner);
 		sb.append("\n"); 
+		sb.append(" winning proposal ");
+		sb.append(bestProposal.toString());
+		sb.append("\n"); 
 		sb.append(" auction duration: ");
 		sb.append(auctionDuration);
 		sb.append("\n"); 

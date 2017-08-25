@@ -1,6 +1,5 @@
 package contract_net;
 
-
 /*
  * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
@@ -18,15 +17,9 @@ package contract_net;
  */
 
 import static com.google.common.collect.Maps.newHashMap;
-
-import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +32,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
@@ -51,10 +45,13 @@ import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.experiment.PostProcessors;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.io.DotGraphIO;
 import com.github.rinde.rinsim.geom.io.Filters;
+import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
+import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
@@ -71,8 +68,6 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
-  public static final Mode mode = Mode.BASIC;
-
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
   private static final int NUM_PARCELS = 3;
@@ -85,7 +80,7 @@ public final class main {
 
   private static final int SPEED_UP = 4;
   private static final int MAX_CAPACITY = 3;
-  private static final double NEW_PARCEL_PROB = .00007; //TODO op .007 zetten 
+  private static final double NEW_PARCEL_PROB = .007; //TODO op .007 zetten 
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
@@ -108,7 +103,7 @@ public final class main {
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
       : MAP_FILE;
-    run(true, endTime, graphFile, null /* new Display() */, null, null);
+    run(false, endTime, graphFile, null /* new Display() */, null, null);
   }
 
   /**
@@ -134,6 +129,21 @@ public final class main {
       @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     final View.Builder view = createGui(testing, display, m, list);
+    
+    // TODO: we must use withCollisionAvoidance() example. This can be obtained with a dynamicGraph instead of a staticGraph
+    // however, with a dynamic graph we cannot give the map as parameter
+    /*
+    roadModel = CollisionGraphRoadModel.builder(GraphUtils.createGraph())
+            .setVehicleLength(GraphUtils.VEHICLE_LENGTH)
+            .build();
+    */
+    // use map of leuven
+	  //TODO: include collisionavoidance and deadlock
+	  /*
+	  .withCollisionAvoidance()
+    .withDistanceUnit(SI.METER)
+    .withVehicleLength(VEHICLE_LENGTH)
+	  .withMinDistance(1d))*/
     final Simulator simulator = Simulator.builder()
     	      .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
     	      .addModel(DefaultPDPModel.builder())
@@ -151,7 +161,7 @@ public final class main {
 
     // generate an empty list to store the results of each auction
     final AuctionResults auctionResults = new AuctionResults();
-    auctionResultsList = auctionResults.getAuctionResults();
+
     
     // add depots, trucks and parcels to simulator
     //TODO take into account depot capacity
@@ -163,19 +173,8 @@ public final class main {
     
 
     for (int i = 0; i < NUM_TRUCKS; i++) {
-    	TruckAgent truckAgent = null;
-    	switch(mode){
-    		case BASIC:
-    			truckAgent = new TruckAgentBasic(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
-    			break;
-    		case PARALLEL_AUCTIONS:
-    			truckAgent = new TruckAgentParallel(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
-    			break;
-    		case DRIVING_AUCTIONS:
-    			truckAgent = new TruckAgentDriving(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
-    			break;
-    	}
-    	simulator.register(truckAgent);
+    	TruckAgent truckAgent = new TruckAgent(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
+      simulator.register(truckAgent);
     }
 
     for (int i = 0; i < NUM_PARCELS; i++) {
@@ -184,11 +183,10 @@ public final class main {
                 .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
                 .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
                 .build();
-    	Customer cust = new Customer(parcel.getDto());
-		simulator.register(cust);
+		simulator.register(new Customer(parcel.getDto()));
 		
 		// Assign parcel to random DispatchAgent.
-		dispatchAgents.get(rng.nextInt(dispatchAgents.size())).assignParcel(cust);
+		dispatchAgents.get(rng.nextInt(dispatchAgents.size())).assignParcel(parcel);
     }
   
     /*
@@ -202,31 +200,32 @@ public final class main {
       @Override
       public void tick(TimeLapse time) {
         if (time.getStartTime() > endTime) {
-          System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
-          	      .getStatistics());
-          writeToTxt(auctionResults.getAuctionResults());
+            
+            System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
+            	      .getStatistics());
+            auctionResults.getAuctionResults();
           simulator.stop();
-        } else if (rng.nextDouble() < NEW_PARCEL_PROB) {
+        } /*else if (rng.nextDouble() < NEW_PARCEL_PROB) {
         	Parcel parcel =Parcel.builder(roadModel.getRandomPosition(rng),
                     roadModel.getRandomPosition(rng))
                     .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
                     .neededCapacity(1 + rng.nextInt(MAX_CAPACITY)) // we did not yet do anything with capacity
                     .build();
-        	Customer cust = new Customer(parcel.getDto());
-    		simulator.register(cust);
+    		simulator.register(new Customer(parcel.getDto()));
     		
+
     		// Assign parcel to random DispatchAgent.
     		Set<DispatchAgent> dispatchAgents = (roadModel.getObjectsOfType(DispatchAgent.class));
     		int num = rng.nextInt(dispatchAgents.size());
     		int i = 0;
     		for (DispatchAgent dispatchAgent : dispatchAgents){
     		    if(i == num){
-    		    	dispatchAgent.assignParcel(cust);
+    		    	dispatchAgent.assignParcel(parcel);
     		    	break;
     		    }
     			i++;
     		}
-        }
+        }*/
       }
 
       @Override
@@ -246,12 +245,14 @@ public final class main {
     View.Builder view = View.builder()
       .with(GraphRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
-      .withImageAssociation(DispatchAgent.class, "/graphics/perspective/tall-building-64.png")
-      .withImageAssociation(TruckAgentBasic.class, "/graphics/flat/small-truck-64.png")
-      .withImageAssociation(TruckAgentParallel.class, "/graphics/flat/small-truck-64.png")
-      .withImageAssociation(TruckAgentDriving.class, "/graphics/flat/small-truck-64.png")
-      .withImageAssociation(Customer.class, "/graphics/perspective/deliverypackage.png")
-      .withImageAssociation(ChargingStation.class, "/contract_net/tankstation.png"))
+        .withImageAssociation(
+        DispatchAgent.class, "/graphics/perspective/tall-building-64.png")
+        .withImageAssociation(
+          TruckAgent.class, "/graphics/flat/small-truck-64.png")
+        .withImageAssociation(
+          Customer.class, "/graphics/perspective/deliverypackage.png")
+      .withImageAssociation(
+    		  ChargingStation.class, "/graphics/perspective/gas-truck-64.png"))
       //.with(TaxiRenderer.builder(Language.ENGLISH))
       .withTitleAppendix("PDP Demo");
 
@@ -304,52 +305,5 @@ public final class main {
 
     @Override
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-  }
-  
-  //TODO: now only auctions with a proposal from a truckagent are added to auctionResulst, we also have to add the auctions without a proposal from a truckagent with value null for proposal and other inexisting values
-  public static void writeToTxt(List<AuctionResult> auctionResults) {
-	  PrintWriter writer = null;
-	  try {
-		  // generate a unique name for each experiment
-		  String logFileName = new SimpleDateFormat("yyyyMMddHHmm'.txt'").format(new Date());
-		  writer = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
-		  for(AuctionResult auctionResult: auctionResults){
-			  // auction result data are tab delimited, so we can read them as columns
-			  writer.print(auctionResult.hashCode());
-			  writer.print("\t");
-			  writer.print(auctionResult.getAuction());
-			  writer.print("\t");
-			  writer.print(auctionResult.getWinner());
-			  writer.print("\t");
-			  writer.print(auctionResult.getAuctionDuration());
-			  writer.print("\t");
-			  writer.print(auctionResult.getRealTimeTruckToPickup());
-			  writer.print("\t");
-			  writer.print(auctionResult.getRealTimePickupToDelivery());
-			  writer.print("\t");
-			  writer.print(auctionResult.getRealTimeTruckToPickupToDelivery());
-			  writer.print("\t");
-			  writer.print(auctionResult.getPickupTardiness(auctionResult.getBestProposal(),auctionResult.getRealTimeTruckToPickup()));
-			  writer.print("\t");
-			  writer.print(auctionResult.getDeliveryTardiness(auctionResult.getBestProposal(),auctionResult.getRealTimePickupToDelivery()));
-			  writer.print("\t");
-			  writer.print(auctionResult.getPickupDeliveryTardiness(auctionResult.getBestProposal(),auctionResult.getRealTimeTruckToPickupToDelivery()));
-			  writer.print("\t");
-			  writer.print(auctionResult.getRealTimeCFPDelivery());
-			  writer.print("\t");
-			  //TODO maybe leave away this one
-			  writer.print(auctionResult.getRejectedProposals());
-			  // new line for new auction
-			  writer.println();
-		  }
-	  }
-	  catch (IOException e){
-		  e.printStackTrace();
-	  }
-	  finally {
-		  if(writer !=null){
-			  writer.close();
-		  }
-	  }
   }
 }
