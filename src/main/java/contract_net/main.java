@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.util.MathArrays.Position;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 import com.github.rinde.rinsim.core.Simulator;
@@ -71,7 +72,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
-  public static final Mode mode = Mode.PARALLEL_AUCTIONS;
+  public static final Mode mode = Mode.BASIC;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
@@ -146,7 +147,7 @@ public final class main {
       RoadModel.class);
     final CommModel commModel = simulator.getModelProvider().getModel(CommModel.class);
     final List<AuctionResult> auctionResultsList;
-    ArrayList<DispatchAgent> dispatchAgents = new ArrayList<DispatchAgent>();
+    final ArrayList<DispatchAgent> dispatchAgents = new ArrayList<DispatchAgent>();
 
     // generate an empty list to store the results of each auction
     final AuctionResults auctionResults = new AuctionResults();
@@ -155,7 +156,7 @@ public final class main {
     // add depots, trucks and parcels to simulator
     //TODO take into account depot capacity
     for (int i = 0; i < NUM_DEPOTS; i++) {
-    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, roadModel, rng, roadModel.getRandomPosition(rng), auctionResultsList);
+    	DispatchAgent dispatchAgent = new DispatchAgent(defaultpdpmodel, roadModel, rng, roadModel.getRandomPosition(rng));
     	simulator.register(dispatchAgent);
     	dispatchAgents.add(dispatchAgent);
     }
@@ -176,7 +177,8 @@ public final class main {
     	}
     	simulator.register(truckAgent);
     }
-
+    
+    
     for (int i = 0; i < NUM_PARCELS; i++) {
     	Parcel parcel = Parcel.builder(roadModel.getRandomPosition(rng),
                 roadModel.getRandomPosition(rng))
@@ -190,6 +192,7 @@ public final class main {
 		dispatchAgents.get(rng.nextInt(dispatchAgents.size())).assignParcel(cust);
     }
   
+
     /*
     for (int i = 0; i < NUM_CHARINGSTATIONS; i++) {
     	ChargingStation chargingStation = new ChargingStation(roadModel.getRandomPosition(rng), roadModel, rng);
@@ -200,10 +203,17 @@ public final class main {
     simulator.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse time) {
-        if (time.getStartTime() > endTime) {
-          System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
-          	      .getStatistics());
-          writeToTxt(auctionResults.getAuctionResults());
+    	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
+        if (time.getStartTime() > 10000000) {
+          //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
+          //	      .getStatistics());
+          System.out.println("END OF TEST");
+
+          for(DispatchAgent da: dispatchAgents){
+          	  writeToTxt(da.getAuctionResults(), da);
+          	  //System.out.println(da.getAuctionResults().toString());
+          }
+
           simulator.stop();
         } else if (rng.nextDouble() < NEW_PARCEL_PROB) {
         	Parcel parcel =Parcel.builder(roadModel.getRandomPosition(rng),
@@ -306,7 +316,7 @@ public final class main {
   }
   
   //TODO: now only auctions with a proposal from a truckagent are added to auctionResulst, we also have to add the auctions without a proposal from a truckagent with value null for proposal and other inexisting values
-  public static void writeToTxt(List<AuctionResult> auctionResults) {
+  public static void writeToTxt(List<AuctionResult> auctionResults, DispatchAgent da) {
 	  PrintWriter writer = null;
 	  try {
 		  // generate a unique name for each experiment
@@ -314,6 +324,8 @@ public final class main {
 		  writer = new PrintWriter(new BufferedWriter(new FileWriter(logFileName)));
 		  for(AuctionResult auctionResult: auctionResults){
 			  // auction result data are tab delimited, so we can read them as columns
+			  writer.print(da.toString());
+			  writer.print("\t");
 			  writer.print(auctionResult.hashCode());
 			  writer.print("\t");
 			  writer.print(auctionResult.getAuction());

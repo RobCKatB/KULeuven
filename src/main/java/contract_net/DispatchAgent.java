@@ -35,7 +35,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	private RoadModel roadModel;
 	private List<CNPMessage> unreadMessages = new ArrayList<CNPMessage>();
 	private AuctionResult auctionResult;
-	private List<AuctionResult> auctionResults;
+	private List<AuctionResult> auctionResults= new ArrayList<AuctionResult>();
 	private long currentTime;
 
 	// Collections for the four stages a parcel goes through.
@@ -55,12 +55,12 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	static final long LONELINESS_THRESHOLD = 10 * 1000;
 	private static final long AUCTION_DURATION = 10000;
 	
-	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, RandomGenerator rng, Point position, List<AuctionResult> auctionResults) {
+	public DispatchAgent(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, RandomGenerator rng, Point position) {
 		super(position);
 		this.defaultpdpmodel = defaultpdpmodel;// defined in the main
 		this.roadModel = roadModel; // defined in the main
 		new ArrayList<Parcel>();
-		this.auctionResults = auctionResults;
+		//this.auctionResults = auctionResults;
 		commDevice = Optional.absent();
 		//range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
 		//range = 9000000.0D;
@@ -388,6 +388,13 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 
 	public void setUnreadMessages(List<CNPMessage> unreadMessages) {
 		this.unreadMessages = unreadMessages;
+	}
+	public List<AuctionResult> getAuctionResults() {
+		return auctionResults;
+	}
+
+	public void setAuctionResults(List<AuctionResult> auctionResults) {
+		this.auctionResults = auctionResults;
 	}
 
 }

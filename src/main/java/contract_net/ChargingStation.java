@@ -14,8 +14,7 @@ import com.google.common.base.Optional;
 
 public class ChargingStation implements CommUser, RoadUser, TickListener{
 	
-	//private Optional<RoadModel> roadModel;
-	private RoadModel roadModel;
+	private Optional<RoadModel> roadModel;
 	private Point startPosition;
 	private Optional<CommDevice> commDevice;
 	private Optional<TruckAgent> dockedVehicle;
@@ -31,13 +30,13 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 	public ChargingStation(Point startPosition, RoadModel roadModel, RandomGenerator rng){
 		this.rng = rng;
 		
-		//this.roadModel = Optional.absent();
-		this.roadModel = roadModel;
+		this.roadModel = Optional.absent();
 		this.startPosition = startPosition;
 		this.dockedVehicle = Optional.absent();
 		
 		// settings for commDevice belonging to TruckAgent
-	    range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+	    //range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
+		range = Double.MAX_VALUE;
 	    reliability = rng.nextDouble();
 		commDevice = Optional.absent();
 	}
@@ -71,7 +70,7 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 
 	@Override
 	public Optional<Point> getPosition() {
-		return Optional.of(roadModel.getPosition(this));
+		return Optional.of(roadModel.get().getPosition(this));
 	}
 
 	@Override
@@ -85,7 +84,8 @@ public class ChargingStation implements CommUser, RoadUser, TickListener{
 
 	@Override
 	public void initRoadUser(RoadModel model) {
-		roadModel.addObjectAt(this, startPosition);
+		this.roadModel = Optional.of(model);
+		this.roadModel.get().addObjectAt(this, startPosition);
 	}
 
 	@Override
