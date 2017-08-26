@@ -43,7 +43,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
     private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
 	private static final double SPEED = 1000d;
 	private static final double ENERGYCONSUMPTION = 1d; // Per unit mileage
-	private static final double ENERGYCAPACITY = 500000d;
+	private static final double ENERGYCAPACITY = 10000000d;
 
 	// for CommUser
 	private final double range;

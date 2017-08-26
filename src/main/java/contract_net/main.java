@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +40,13 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.MathArrays.Position;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
+import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -60,6 +66,7 @@ import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
+import com.google.common.collect.ImmutableBiMap;
 
 
 /**
@@ -72,7 +79,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  */
 public final class main {
 
-  public static final Mode mode = Mode.DRIVING_AUCTIONS;
+  public static final Mode mode = Mode.BASIC;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
@@ -94,7 +101,8 @@ public final class main {
   
   private static final long TEST_STOP_TIME = 200 * 60 * 10000;
   private static final int TEST_SPEED_UP = 64;
-  
+	protected static final Logger LOGGER = LoggerFactory
+			.getLogger(main.class);
   private main() {}
  
   /**
@@ -203,7 +211,8 @@ public final class main {
       @Override
       public void tick(TimeLapse time) {
     	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
-        if (time.getStartTime() > endTime) {
+        if (time.getStartTime() > 10000000) {
+        	getParcelResults(pdpModel);
           //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
           //	      .getStatistics());
           System.out.println("END OF TEST");
@@ -301,21 +310,47 @@ public final class main {
       throw new IllegalStateException(e);
     }
   }
-
-  /**
-   * A customer with very permissive time windows.
-   */
-  static class Customer extends Parcel {
-    Customer(ParcelDTO dto) {
-      super(dto);
-    }
-
-    @Override
-    public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-  }
   
-  //TODO: now only auctions with a proposal from a truckagent are added to auctionResulst, we also have to add the auctions without a proposal from a truckagent with value null for proposal and other inexisting values
-  public static void writeToTxt(List<AuctionResult> auctionResults, DispatchAgent da) {
+ 
+  public static void getParcelResults(PDPModel pdpModel){
+
+		int totalParcels = 0;
+		int deliveredParcels = 0;
+		int stillBeingTransportedParcels = 0;
+		int notHandledParcels = 0;
+		Collection<Parcel> parcels = pdpModel.getParcels(com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.values());
+		totalParcels = parcels.size();
+		for (Parcel parcel : parcels) {		
+			if (pdpModel.getParcelState(parcel).isDelivered()) {
+				deliveredParcels++;
+			} else if (com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.IN_CARGO == pdpModel.getParcelState(parcel)){
+				stillBeingTransportedParcels++;
+				System.out.println("Parcel "+parcel+" is still being transported.");
+			} else {
+				notHandledParcels++;
+				System.out.println("Parcel "+parcel+" is not delivered.");
+			}
+		}
+		System.out.println("PARCELS delivered = "+deliveredParcels);
+		System.out.println("PARCELS still being transported = "+stillBeingTransportedParcels);
+		System.out.println("PARCELS not handled = "+notHandledParcels);
+		System.out.println("PARCELS total = "+totalParcels);
+	}
+
+/**
+ * A customer with very permissive time windows.
+ */
+static class Customer extends Parcel {
+  Customer(ParcelDTO dto) {
+    super(dto);
+  }
+
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+}
+
+//TODO: now only auctions with a proposal from a truckagent are added to auctionResulst, we also have to add the auctions without a proposal from a truckagent with value null for proposal and other inexisting values
+public static void writeToTxt(List<AuctionResult> auctionResults, DispatchAgent da) {
 	  PrintWriter writer = null;
 	  try {
 		  // generate a unique name for each experiment
@@ -333,6 +368,12 @@ public final class main {
 			  writer.print(auctionResult.getAuction());
 			  writer.print("\t");
 			  writer.print(auctionResult.getWinner());
+			  writer.print("\t");
+			  writer.print(auctionResult.getBestProposal());
+			  writer.print("\t");
+			  writer.print(auctionResult.getBestProposal().getTimeCostProposal());
+			  writer.print("\t");
+			  writer.print(auctionResult.getBestProposal().getTimeCostProposal());
 			  writer.print("\t");
 			  writer.print(auctionResult.getAuctionDuration());
 			  writer.print("\t");
@@ -364,5 +405,5 @@ public final class main {
 			  writer.close();
 		  }
 	  }
-  }
+}
 }
