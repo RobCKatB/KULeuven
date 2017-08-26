@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.measure.unit.SystemOfUnits;
+
 import org.apache.commons.math3.random.RandomGenerator;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
@@ -36,9 +38,8 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private Optional<CommDevice> commDevice;
 	protected Optional<Parcel> currParcel;
 	private Optional<ChargingStation> closestChargingStation;
-	private int capacity;
 	protected double energy;
-	private long travelledDistance;	
+	private double travelledDistance;	
 	private int numberOfRecharges;
 	private int numberOfDirectMessages;
 	private DefaultPDPModel defaultpdpmodel;
@@ -89,7 +90,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		isIdle = true;
 		isCarrying = false;
 		energy = ENERGYCAPACITY;
-		travelledDistance = 0L;
+		travelledDistance = 0;
 		numberOfRecharges = 0;
 		numberOfDirectMessages = 0;
 	}
@@ -164,10 +165,10 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		moveTo(closestChargingStation.get().getPosition().get(), time);
 		// truck docks itself to the charging station and in the tick of the charging station he gets charged
 		if (roadModel.equalPosition(this, closestChargingStation.get())){
-			System.out.println("BEFORE CHARGING: [energy left = "+energy +"] [travelled distance = "+travelledDistance+"]");
-			charge(energy);
+//			System.out.println("BEFORE CHARGING: [energy left = "+energy +"] [travelled distance = "+travelledDistance+"]");
+			charge(ENERGYCAPACITY/5);
 			numberOfRecharges++;
-			System.out.println("AFTER CHARGING: [energy left = "+energy +"], max energy is " +ENERGYCAPACITY+" [travelled distance = "+travelledDistance+"]");
+//			System.out.println("AFTER CHARGING: [energy left = "+energy +"], max energy is " +ENERGYCAPACITY+" [travelled distance = "+travelledDistance+"]");
 		}
 	}
 
@@ -176,12 +177,12 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	 */
 	private void moveTo(RoadUser destination, TimeLapse time) {
 		MoveProgress moveProgress = roadModel.moveTo(this, destination, time);
-		this.consumeEnergy(moveProgress.distance().getValue());
+		this.consumeEnergy(moveProgress.distance().getValue()*1000);
 		travelledDistance += moveProgress.distance().getValue();
 	}
 	private void moveTo(Point destination, TimeLapse time) {
 		MoveProgress moveProgress = roadModel.moveTo(this, destination, time);
-		this.consumeEnergy(moveProgress.distance().getValue());
+		this.consumeEnergy(moveProgress.distance().getValue()*1000);
 		travelledDistance += moveProgress.distance().getValue();
 	}
 	
@@ -196,8 +197,9 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	 * charging station
 	 */
 	public void charge(double amount){
-		this.energy = ENERGYCAPACITY;
+		this.energy += amount;
 		if(this.energy >= ENERGYCAPACITY){
+			this.energy = ENERGYCAPACITY;
 			this.isCharging = false;
 			this.isIdle = true;
 		}
@@ -210,9 +212,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private void consumeEnergy(double consumed){
 		if(this.energy >= consumed){
 			this.energy -= consumed;
-		} else{
-			System.out.println("ERROR: energy level cannot drop below 0");
-		}		
+		}	
 	}
 	
 
@@ -466,7 +466,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		this.isCharging = isCharging;
 	}
 
-	public long getTravelledDistance() {
+	public double getTravelledDistance() {
 		return travelledDistance;
 	}
 

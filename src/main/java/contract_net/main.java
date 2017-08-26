@@ -80,7 +80,7 @@ import com.google.common.collect.ImmutableBiMap;
  */
 public final class main {
 
-  public static final Mode mode = Mode.PARALLEL_AUCTIONS;
+  public static final Mode mode = Mode.BASIC;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
