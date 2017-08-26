@@ -214,9 +214,10 @@ public final class main {
       @Override
       public void tick(TimeLapse time) {
     	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
-        if (time.getStartTime() > 10000000) {
+        if (time.getStartTime() > 10000*10000) {
         	getParcelResults(pdpModel);
         	getDistanceResults(truckAgents);
+        	getNumberOfRecharges(truckAgents);
           //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
           //	      .getStatistics());
           System.out.println("END OF TEST");
@@ -315,9 +316,20 @@ public final class main {
     }
   }
   
+  /*
+   * generate statistics
+   */
+  public static int getNumberOfRecharges(ArrayList<TruckAgent> truckAgents){
+	  int totalNumberOfRecharges = 0;
+	  for(TruckAgent truckAgent: truckAgents){
+		  totalNumberOfRecharges+=truckAgent.getNumberOfRecharges();
+	  }
+	  System.out.println("TOTAL NUMBER OF RECHARGES needed by "+ truckAgents.size()+ " truckagents is "+totalNumberOfRecharges);
+	  return totalNumberOfRecharges;
+  }
  
   public static long getDistanceResults(ArrayList<TruckAgent> truckAgents){
-	  long totalDistanceTravelled = 0;
+	  long totalDistanceTravelled = 0L;
 	  for(TruckAgent truckAgent: truckAgents){
 		  totalDistanceTravelled+=truckAgent.getTravelledDistance();
 	  }

@@ -37,13 +37,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private int capacity;
 	private double energy;
 	private long travelledDistance;	
+	private int numberOfRecharges;
 	private DefaultPDPModel defaultpdpmodel;
 	private RoadModel roadModel;
     private List<Proposal> proposals = new ArrayList<Proposal>();
     private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
 	private static final double SPEED = 1000d;
 	private static final double ENERGYCONSUMPTION = 1d; // Per unit mileage
-	private static final double ENERGYCAPACITY = 10000000d;
+	private static final double ENERGYCAPACITY = 1000000d;
 
 	// for CommUser
 	private final double range;
@@ -85,7 +86,8 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		isIdle = true;
 		isCarrying = false;
 		energy = ENERGYCAPACITY;
-		travelledDistance = 0;
+		travelledDistance = 0L;
+		numberOfRecharges = 0;
 	}
 
 	@Override
@@ -381,11 +383,12 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 				travelledDistance+=this.calculatePointToPointDistance(currTruckPos, chargingStation.get().getPosition().get());
 			}
 			charge(energy);
+			numberOfRecharges++;
 			System.out.println("AFTER CHARGING: [energy left = "+energy +"], max energy is " +ENERGYCAPACITY+" [travelled distance = "+travelledDistance+"]");
 			}
 		}
 
-	
+
 	/*
 	 * send messages from TruckAgent to DispatchAgent
 	 */
@@ -451,6 +454,15 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		this.travelledDistance = travelledDistance;
 	}
 	
+	
+	public int getNumberOfRecharges() {
+		return numberOfRecharges;
+	}
+
+	public void setNumberOfRecharges(int numberOfRecharges) {
+		this.numberOfRecharges = numberOfRecharges;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder("Truck [");
