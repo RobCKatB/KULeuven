@@ -412,11 +412,9 @@ public static void writeToTxt(List<AuctionResult> auctionResults, DispatchAgent 
 	  PrintWriter writer = null;
 	  try {
 		  // generate a unique name for each experiment
-		  int counter = 0;
 		  String logFileName = new SimpleDateFormat("yyyyMMddHHmmss'.txt'").format(new Date());
-		  String logNumberFileName = counter+logFileName;
+		  String logNumberFileName = da+"_"+logFileName;
 		  writer = new PrintWriter(new BufferedWriter(new FileWriter(logNumberFileName)));
-		  counter++;
 		  for(AuctionResult auctionResult: auctionResults){
 			  // auction result data are tab delimited, so we can read them as columns
 			  writer.print(da.toString());
