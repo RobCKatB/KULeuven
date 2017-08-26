@@ -219,10 +219,12 @@ public final class main {
         	System.out.println("---------------");
         	getParcelResults(pdpModel);
         	getDistanceResults(truckAgents);
+        	getTimeResults(truckAgents);
         	getNumberOfRecharges(truckAgents);
         	getNumberOfDirectMessagesTruckAgents(truckAgents);
         	getNumberOfDirectMessagesDispatchAgents(dispatchAgents);
         	getNumberOfBroadcastMessagesDispatchAgents(dispatchAgents);
+        	calculateAverageTimeCFPToDelivery(dispatchAgents);
           //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
           //	      .getStatistics());
           System.out.println("END OF TEST");
@@ -370,6 +372,15 @@ public final class main {
 	  return totalDistanceTravelled;
   }
   
+  public static long getTimeResults(ArrayList<TruckAgent> truckAgents){
+	  long totalTimeTravelled = 0L;
+	  for(TruckAgent truckAgent: truckAgents){
+		  totalTimeTravelled+=truckAgent.getTravelledTime();
+	  }
+	  System.out.println("TOTAL TIME travelled by "+ truckAgents.size()+ " truckagents is "+(totalTimeTravelled/1000/60)+" min");
+	  return totalTimeTravelled;
+  }
+  
   public static void getParcelResults(PDPModel pdpModel){
 
 		int totalParcels = 0;
@@ -393,6 +404,24 @@ public final class main {
 		System.out.println("PARCELS still being transported = "+stillBeingTransportedParcels);
 		System.out.println("PARCELS not handled = "+notHandledParcels);
 		System.out.println("PARCELS total = "+totalParcels);
+	}
+  
+	public static long calculateAverageTimeCFPToDeliveryPerDispatchAgent(List<AuctionResult> auctionResults, DispatchAgent da) {
+		long sumRealTimeCFPDelivery = 0L;	  
+		for(AuctionResult auctionResult: auctionResults){
+			sumRealTimeCFPDelivery+=auctionResult.getRealTimeCFPDelivery();	  
+			  }
+		return sumRealTimeCFPDelivery/auctionResults.size();
+	}
+	
+	public static long calculateAverageTimeCFPToDelivery(List<DispatchAgent> dispatchAgents) {
+	    long sumTimeCFPToDelivery = 0L;
+	    for(DispatchAgent disp: dispatchAgents){
+ 	    	  sumTimeCFPToDelivery += calculateAverageTimeCFPToDeliveryPerDispatchAgent(disp.getAuctionResults(), disp);
+	    	  //System.out.println(da.getAuctionResults().toString());
+	    }
+	    System.out.println("AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: "+((sumTimeCFPToDelivery/dispatchAgents.size())/1000/60)+ " min");
+	    return sumTimeCFPToDelivery/dispatchAgents.size();  
 	}
 
 /**

@@ -40,6 +40,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private Optional<ChargingStation> closestChargingStation;
 	protected double energy;
 	private double travelledDistance;	
+	private long travelledTime;
 	private int numberOfRecharges;
 	private int numberOfDirectMessages;
 	private DefaultPDPModel defaultpdpmodel;
@@ -93,6 +94,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		travelledDistance = 0;
 		numberOfRecharges = 0;
 		numberOfDirectMessages = 0;
+		travelledTime = 0L;
 	}
 
 	@Override
@@ -183,6 +185,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private void moveTo(Point destination, TimeLapse time) {
 		MoveProgress moveProgress = roadModel.moveTo(this, destination, time);
 		this.consumeEnergy(moveProgress.distance().getValue()*1000);
+		travelledTime +=moveProgress.time().getValue();
 		travelledDistance += moveProgress.distance().getValue();
 	}
 	
@@ -490,6 +493,16 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	public void setNumberOfDirectMessages(int numberOfDirectMessages) {
 		this.numberOfDirectMessages = numberOfDirectMessages;
 	}
+	
+
+	public long getTravelledTime() {
+		return travelledTime;
+	}
+
+	public void setTravelledTime(long travelledTime) {
+		this.travelledTime = travelledTime;
+	}
+
 
 	@Override
 	public String toString() {
