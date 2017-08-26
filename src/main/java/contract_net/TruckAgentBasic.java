@@ -26,15 +26,20 @@ public class TruckAgentBasic extends TruckAgent {
 			switch (m.getType()) {
 
 			case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
-				if(!isCharging && isIdle && !currAuction.isPresent()){
-					doProposal(this.getPosition().get(), m.getAuction(), this, time);
-					currAuction = Optional.of(m.getAuction());
-					// in the basic version of CNP, a truckagent becomes idle once he is participating in an auction
-					this.isIdle = false;
-					System.out.println(this+" > proposal sent for "+m.getAuction());
-				} else {
+				if(isCharging || !isIdle || currAuction.isPresent()){
+					// Not right state
 					sendRefusal(m.getAuction(), "Charging or busy", time);
 					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
+				}else if(!enoughEnergy(this.getPosition().get(), m.getAuction().getParcel(), findClosestChargingStation())){
+					// Not enough energy
+					goCharging();
+					sendRefusal(m.getAuction(), "truck is charging", time);
+					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
+				}else{
+					// Everything fine; do proposal
+					doProposal(this.getPosition().get(), m.getAuction(), this, time);
+					currAuction = Optional.of(m.getAuction());
+					System.out.println(this+" > proposal sent for "+m.getAuction());
 				}
 				break;
 			case ACCEPT_PROPOSAL:
@@ -58,7 +63,6 @@ public class TruckAgentBasic extends TruckAgent {
 				// Dispatch agent has rejected the proposal of truckagent.
 				// Make sure we can participate in a new auction
 				currAuction = Optional.absent();
-				this.isIdle = true;
 
 				break;
 			default:

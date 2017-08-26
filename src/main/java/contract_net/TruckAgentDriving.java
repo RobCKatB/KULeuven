@@ -12,6 +12,7 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 
 public class TruckAgentDriving extends TruckAgent {
 
@@ -21,6 +22,9 @@ public class TruckAgentDriving extends TruckAgent {
 	// be cancelled.
 	private HashSet<Auction> validProposals = new HashSet<Auction>();
 	private LinkedList<CNPMessage> wonAuctionsQueue = new LinkedList<CNPMessage>();
+	// The energy used by all delivered parcels + the energy that is needed for all
+	// parcels in the queue.
+	double energyUsedByQueue = 0;
 	
 	public TruckAgentDriving(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, Point startPosition, int capacity,
 			RandomGenerator rng) {
@@ -34,12 +38,21 @@ public class TruckAgentDriving extends TruckAgent {
 			switch (m.getType()) {
 
 			case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
-				if(!isCharging){ // TODO: how to handle charging?
-					doProposal(this.getPosition().get(), m.getAuction(), this, time);
-					validProposals.add(m.getAuction());
-				} else {
+				if(isCharging){
+					// Not right state
 					sendRefusal(m.getAuction(), "Charging or busy", time);
 					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
+				}else if(!enoughEnergy(this.getPosition().get(), m.getAuction().getParcel(), findClosestChargingStation())){
+					// Not enough energy
+					goCharging();
+					energyUsedByQueue = 0;
+					sendRefusal(m.getAuction(), "truck is charging", time);
+					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
+				}else{
+					// Everything fine; do proposal
+					doProposal(this.getPosition().get(), m.getAuction(), this, time);
+					validProposals.add(m.getAuction());
+					System.out.println(this+" > proposal sent for "+m.getAuction());
 				}
 				break;
 				
@@ -53,6 +66,7 @@ public class TruckAgentDriving extends TruckAgent {
 						// it's their turn.
 						wonAuctionsQueue.add(m);
 					}
+					energyUsedByQueue += calculateEnergyConsumptionTask(getLastQueuePosition(), m.getAuction().getParcel());
 					// As our state our queue has been altered, the calculations of proposals
 					// we already sent are no longer valid.
 					validProposals.clear();
@@ -71,7 +85,6 @@ public class TruckAgentDriving extends TruckAgent {
 			}
 		}
 	}
-	
 	
 	@Override
 	protected double calculatePDPDistanceCurrentToPickup(Point currentTruckPosition, Parcel parcel){
@@ -108,6 +121,34 @@ public class TruckAgentDriving extends TruckAgent {
 			distance += calculatePointToPointDistance(path.get(i), path.get(i+1));
 		}
 		return distance;
+	}
+	
+	@Override
+	protected boolean enoughEnergy(Point currTruckPosition, Parcel parcel, Optional<ChargingStation> chargingStation){
+		double energyNeeded = calculateEnergyConsumptionTask(getLastQueuePosition(), parcel) + calculateEnergyConsumptionToChargingStation(parcel.getDeliveryLocation(), chargingStation);
+		energyNeeded += energyUsedByQueue;
+		System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
+		if (energyNeeded <=  energy){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Return the position this truck will have when all his current
+	 * tasks are finished.
+	 * @return
+	 */
+	private Point getLastQueuePosition(){
+		if(!wonAuctionsQueue.isEmpty()){
+			return wonAuctionsQueue.getLast().getAuction().getParcel().getDeliveryLocation();
+		}else if(currParcel.isPresent()){
+			return currParcel.get().getDeliveryLocation();
+		}else{
+			return this.getPosition().get();
+		}
 	}
 	
 	protected void afterDelivery(TimeLapse time){

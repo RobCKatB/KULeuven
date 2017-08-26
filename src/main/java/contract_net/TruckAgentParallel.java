@@ -26,11 +26,19 @@ public class TruckAgentParallel extends TruckAgent {
 			switch (m.getType()) {
 
 			case CALL_FOR_PROPOSAL: // TruckAgent receives call for proposal from a Dispatch Agent
-				if(!isCharging && isIdle){
-					doProposal(this.getPosition().get(), m.getAuction(), this, time);
-				} else {
-					sendRefusal(m.getAuction(), "Charging or busy.", time);
+				if(isCharging || !isIdle){
+					// Not right state
+					sendRefusal(m.getAuction(), "Charging or busy", time);
 					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
+				}else if(!enoughEnergy(this.getPosition().get(), m.getAuction().getParcel(), findClosestChargingStation())){
+					// Not enough energy
+					goCharging();
+					sendRefusal(m.getAuction(), "truck is charging", time);
+					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
+				}else{
+					// Everything fine; do proposal
+					doProposal(this.getPosition().get(), m.getAuction(), this, time);
+					System.out.println(this+" > proposal sent for "+m.getAuction());
 				}
 				break;
 				

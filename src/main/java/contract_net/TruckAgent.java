@@ -18,9 +18,11 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
+import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
@@ -35,7 +37,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	protected Optional<Parcel> currParcel;
 	private Optional<ChargingStation> closestChargingStation;
 	private int capacity;
-	private double energy;
+	protected double energy;
 	private long travelledDistance;	
 	private int numberOfRecharges;
 	private int numberOfDirectMessages;
@@ -106,9 +108,13 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			// drive to destination
 			drive(time);
 		}
+		
+		if(isCharging){
+			driveToChargingStation(time);
+		}
 	
 	}
-	
+
 	protected abstract void processMessages(List<CNPMessage> messages, TimeLapse time);
 	
 	protected void handleParcel(CNPMessage acceptProposalMessage, TimeLapse time){
@@ -122,12 +128,9 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private void drive(TimeLapse time) {
 		if(!isCarrying){
 			// Drive to pickup location
-			Point oldPosition = this.getPosition().get();
-			roadModel.moveTo(this, currParcel.get(), time);
+			moveTo(currParcel.get(),time);
 			//Pickup?
 			if (roadModel.equalPosition(this, currParcel.get())) {
-				this.consumeEnergy(calculateEnergyConsumptionTruckToPickup(oldPosition, currParcel.get()));
-				travelledDistance += this.calculatePDPDistanceCurrentToPickup(oldPosition, currParcel.get());
 				defaultpdpmodel.pickup(this, currParcel.get(), time);
 				pickupTime = time.getTime();
 				isCarrying = true;
@@ -135,12 +138,9 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			}
 		}else{
 			// Drive to destination
-			Point oldPosition = this.getPosition().get();
-			roadModel.moveTo(this, currParcel.get().getDeliveryLocation(), time);
+			moveTo(currParcel.get().getDeliveryLocation(),time);
 			// Dropoff?
 			if (roadModel.getPosition(this).equals(currParcel.get().getDeliveryLocation())) {
-				this.consumeEnergy(calculateEnergyConsumptionPickupToDeliver(oldPosition, currParcel.get()));
-				travelledDistance += this.calculatePDPDistancePickupToDelivery(oldPosition, currParcel.get());
 				defaultpdpmodel.deliver(this, currParcel.get(), time);
 				long deliveryTime = time.getTime();
 				// send INFORM_DONE and INFORM_RESULT message to
@@ -157,6 +157,37 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			}
 		}
 	}
+	
+
+	private void driveToChargingStation(TimeLapse time) {
+		// truck moves to closest charging station to get fuel
+		moveTo(closestChargingStation.get().getPosition().get(), time);
+		// truck docks itself to the charging station and in the tick of the charging station he gets charged
+		if (roadModel.equalPosition(this, closestChargingStation.get())){
+			System.out.println("BEFORE CHARGING: [energy left = "+energy +"] [travelled distance = "+travelledDistance+"]");
+			charge(energy);
+			numberOfRecharges++;
+			System.out.println("AFTER CHARGING: [energy left = "+energy +"], max energy is " +ENERGYCAPACITY+" [travelled distance = "+travelledDistance+"]");
+		}
+	}
+
+	/**
+	 * Two local facades of the moveTo method to do some accounting.
+	 */
+	private void moveTo(RoadUser destination, TimeLapse time) {
+		MoveProgress moveProgress = roadModel.moveTo(this, destination, time);
+		this.consumeEnergy(moveProgress.distance().getValue());
+		travelledDistance += moveProgress.distance().getValue();
+	}
+	private void moveTo(Point destination, TimeLapse time) {
+		MoveProgress moveProgress = roadModel.moveTo(this, destination, time);
+		this.consumeEnergy(moveProgress.distance().getValue());
+		travelledDistance += moveProgress.distance().getValue();
+	}
+	
+	/*private void moveTo(RoadUser destination, TimeLapse time){
+		
+	}*/
 
 	protected abstract void afterDelivery(TimeLapse time);
 
@@ -192,7 +223,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	/*
 	 * method to calculate how much energy is needed for the PDP task
 	 */
-	private double calculateEnergyConsumptionTask(Point currTruckPosition, Parcel parcel){
+	protected double calculateEnergyConsumptionTask(Point currTruckPosition, Parcel parcel){
 		double distance = calculatePDPDistance(currTruckPosition, parcel);
 		return calculateEnergyConsumption(distance);
 	}
@@ -216,7 +247,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	/*
 	 * calculate amount of energy needed for the truck to go from current position to charging station
 	 */
-	private double calculateEnergyConsumptionToChargingStation(Point position, Optional<ChargingStation> chargingStation){
+	protected double calculateEnergyConsumptionToChargingStation(Point position, Optional<ChargingStation> chargingStation){
 		double distance = calculatePointToPointDistance(position, chargingStation.get().getPosition().get());
 		return calculateEnergyConsumption(distance);
 	}
@@ -225,7 +256,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	 * method to check whether the truck has enough energy to do the PDP task and go to the closest charging station 
 	 * after the task has finished (at least if fuel level is low after the PDP task has finished)
 	 */
-	private boolean enoughEnergy(Point currTruckPosition, Parcel parcel, Optional<ChargingStation> chargingStation){
+	protected boolean enoughEnergy(Point currTruckPosition, Parcel parcel, Optional<ChargingStation> chargingStation){
 		double energyNeeded = calculateEnergyConsumptionTask(currTruckPosition, parcel) + calculateEnergyConsumptionToChargingStation(parcel.getDeliveryLocation(), chargingStation);
 		System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
 		if (energyNeeded <=  energy){
@@ -346,14 +377,8 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		// TODO: in more advanced version of the program with a certain delivery time for a parcel:
 		// if currentTime is larger than the desired delivery time for the parcel, send no proposal
 		
-		// check whether there is enough energy to travel this distance, and only then do Proposal, otherwise send REFUSE
-	    if (!closestChargingStation.isPresent()) {
-	    	closestChargingStation = Optional.fromNullable(RoadModels.findClosestObject(
-	          roadModel.getPosition(this), roadModel, ChargingStation.class));
-	      }
-		
 		System.out.println("energy level before doing a proposal for truckagent " + this + " is " + energy);
-		if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
+//		if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
 			// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 			// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 			Proposal proposal = new Proposal(auction, proposer, currentToPickup, pickupToDelivery, timeCostBid);
@@ -362,28 +387,20 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 			sendDirectMessage(cnpProposalMessage, auction.getDispatchAgent());
-		} else {
-			//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
-			isIdle = false;
-			isCharging = true;
-			sendRefusal(auction, "truck is charging", timelapse);
-			System.out.println("REFUSAL sent by truckagent " + this + " because not suffient energy [energy left = "+ energy + "; energy needed = "+calculateEnergyConsumptionTask(currentTruckPosition, auction.getParcel())+"] for auction " + auction.toString());
-			// truck moves to closest charging station to get fuel
-			Point currTruckPos = this.getPosition().get();
-			roadModel.moveTo(this, closestChargingStation.get().getPosition().get(), timelapse);
-			// truck docks itself to the charging station and in the tick of the charging station he gets charged
-			if (roadModel.equalPosition(this, closestChargingStation.get())){
-				System.out.println("BEFORE CHARGING: [energy left = "+energy +"] [travelled distance = "+travelledDistance+"]");
-				// consume the energy for moving to the charging station once the truck is at the charging station
-				this.consumeEnergy(calculateEnergyConsumptionToChargingStation(currTruckPos, closestChargingStation));
-				travelledDistance+=this.calculatePointToPointDistance(currTruckPos, chargingStation.get().getPosition().get());
-			}
-			charge(energy);
-			numberOfRecharges++;
-			System.out.println("AFTER CHARGING: [energy left = "+energy +"], max energy is " +ENERGYCAPACITY+" [travelled distance = "+travelledDistance+"]");
-			}
-		}
+		
+	}
+	
+	protected Optional<ChargingStation> findClosestChargingStation(){
+		closestChargingStation = Optional.fromNullable(RoadModels.findClosestObject(
+		          roadModel.getPosition(this), roadModel, ChargingStation.class));
+		return closestChargingStation;
+	}
 
+	protected void goCharging(){
+		//TODO: change VehicleState to CHARGING, but this is not an option in the predefined enum VehicleState
+		isIdle = false;
+		isCharging = true;
+	}
 
 	/*
 	 * send messages from TruckAgent to DispatchAgent
