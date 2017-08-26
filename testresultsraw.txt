@@ -189,5 +189,17 @@ AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 212 min
 mode = DRIVING_AUCTIONS
 TRUCKS = 10
 PARCELS = 300
-
+---------------
+TOTAL TIME = 231937000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 10 truckagents is 533554
+TOTAL TIME travelled by 10 truckagents is 18742 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 155
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 17546472
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 63741
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 1752146
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 524 min
 ==================================================================
