@@ -22,9 +22,17 @@ public class TruckAgentDriving extends TruckAgent {
 	// be cancelled.
 	private HashSet<Auction> validProposals = new HashSet<Auction>();
 	private LinkedList<CNPMessage> wonAuctionsQueue = new LinkedList<CNPMessage>();
+	/*
+	 * queueDistances(i) = the distance from wonAuctionsQueue(i-1)'s parcel's delivery
+	 * 									via  wonAuctionsQueue(i)'s parcel's pickup
+	 * 									to	 wonAuctinosQueue(i)'s parcel's delivery
+	 */
+	private LinkedList<Double> queueDistances = new LinkedList<Double>();
 	// The energy used by all delivered parcels + the energy that is needed for all
 	// parcels in the queue.
 	double energyUsedByQueue = 0;
+	
+	Optional<Double> cachedPathDistance = Optional.absent();
 	
 	public TruckAgentDriving(DefaultPDPModel defaultpdpmodel, RoadModel roadModel, Point startPosition, int capacity,
 			RandomGenerator rng) {
@@ -65,6 +73,21 @@ public class TruckAgentDriving extends TruckAgent {
 						// Concrete: store the accept_proposal message to be handled when
 						// it's their turn.
 						wonAuctionsQueue.add(m);
+						if(wonAuctionsQueue.size()==1){
+							queueDistances.add(
+									calculatePointToPointDistance(currParcel.get().getDeliveryLocation(),
+											wonAuctionsQueue.getLast().getAuction().getParcel().getPickupLocation())+
+									calculatePointToPointDistance(wonAuctionsQueue.getLast().getAuction().getParcel().getPickupLocation(),
+											wonAuctionsQueue.getLast().getAuction().getParcel().getDeliveryLocation())
+							);
+						}else{
+							queueDistances.add(
+									calculatePointToPointDistance(wonAuctionsQueue.get(wonAuctionsQueue.size()-2).getAuction().getParcel().getDeliveryLocation(),
+											wonAuctionsQueue.getLast().getAuction().getParcel().getPickupLocation())+
+									calculatePointToPointDistance(wonAuctionsQueue.getLast().getAuction().getParcel().getPickupLocation(),
+											wonAuctionsQueue.getLast().getAuction().getParcel().getDeliveryLocation())
+							);
+						}
 					}
 					energyUsedByQueue += calculateEnergyConsumptionTask(getLastQueuePosition(), m.getAuction().getParcel());
 					// As our state our queue has been altered, the calculations of proposals
@@ -88,38 +111,33 @@ public class TruckAgentDriving extends TruckAgent {
 	
 	@Override
 	protected double calculatePDPDistanceCurrentToPickup(Point currentTruckPosition, Parcel parcel){
-		
-		// Construct the path we will have tot ake
-		ArrayList<Point> path = new ArrayList<Point>();
-		
-		path.add(currentTruckPosition);
+		double distance = 0;
+		Point location = currentTruckPosition;
 		
 		// Current parcel
 		if(currParcel.isPresent()){
 			if(!isCarrying){
 				// We have to drive to the pickup location
-				path.add(currParcel.get().getPickupLocation());
+				distance += calculatePointToPointDistance(location, currParcel.get().getPickupLocation());
+				location = currParcel.get().getPickupLocation();
 			}
-			path.add(currParcel.get().getDeliveryLocation());
+			distance += calculatePointToPointDistance(location, currParcel.get().getPickupLocation());
+			location = currParcel.get().getPickupLocation();
 		}
 		
-		// All parcels in queue
-		for(CNPMessage message: wonAuctionsQueue){
-			path.add(message.getAuction().getParcel().getPickupLocation());
-			path.add(message.getAuction().getParcel().getDeliveryLocation());
-		}
-		
-		// Parcel of auction
-		path.add(parcel.getPickupLocation()); // Only to pickup, see name of method
-		
-		return calculatePathDistance(path);
-	}
 
-	private double calculatePathDistance(ArrayList<Point> path){
-		double distance = 0;
-		for (int i = 0; i < path.size()-1; i++) {
-			distance += calculatePointToPointDistance(path.get(i), path.get(i+1));
+		if(!queueDistances.isEmpty()){
+			// All parcels in queue
+			for(Double dist: queueDistances){
+				distance += dist;
+			}
+			
+			location = wonAuctionsQueue.getLast().getAuction().getParcel().getDeliveryLocation();
 		}
+
+		// Parcel of auction
+		distance += calculatePointToPointDistance(location, parcel.getPickupLocation()); // Only to pickup, see name of method
+		
 		return distance;
 	}
 	
@@ -154,7 +172,9 @@ public class TruckAgentDriving extends TruckAgent {
 	protected void afterDelivery(TimeLapse time){
 		// Get right on with the next parcel in the queue.
 		if(!wonAuctionsQueue.isEmpty()){
+			queueDistances.removeFirst();
 			handleParcel(wonAuctionsQueue.removeFirst(), time);
+			cachedPathDistance = Optional.absent();
 		}
 	}
 
