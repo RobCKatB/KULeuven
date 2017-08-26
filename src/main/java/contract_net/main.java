@@ -83,8 +83,8 @@ public final class main {
   public static final Mode mode = Mode.BASIC;
 
   private static final int NUM_DEPOTS = 2;
-  private static final int NUM_TRUCKS = 2;
-  private static final int NUM_PARCELS = 3;
+  private static final int NUM_TRUCKS = 10;
+  private static final int NUM_PARCELS = 30;
   private static final int NUM_CHARINGSTATIONS = 2;
 
   // time in ms
@@ -94,7 +94,7 @@ public final class main {
 
   private static final int SPEED_UP = 4;
   private static final int MAX_CAPACITY = 3;
-  private static final double NEW_PARCEL_PROB = .0007; //TODO op .007 zetten 
+  private static final double NEW_PARCEL_PROB = 0; //TODO op .007 zetten 
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
@@ -213,10 +213,19 @@ public final class main {
     simulator.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse time) {
-    	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
-        if (time.getStartTime() >= TEST_STOP_TIME) {
+    	boolean done = true;
+    	Collection<Parcel> parcels = pdpModel.getParcels(com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.values());
+  		for (Parcel parcel : parcels) {
+  			if(!pdpModel.getParcelState(parcel).isDelivered()){
+  				done = false;
+  				break;
+  			}
+  		}
+  		
+        if (done || time.getStartTime() >= TEST_STOP_TIME) {
         	System.out.println("RESULTS SUMMARY");
         	System.out.println("---------------");
+        	System.out.println("TOTAL TIME = "+time.getStartTime());
         	getParcelResults(pdpModel);
         	getDistanceResults(truckAgents);
         	getTimeResults(truckAgents);
@@ -235,7 +244,7 @@ public final class main {
           }
 
           simulator.stop();
-        } else if (rng.nextDouble() < NEW_PARCEL_PROB) {
+        }/* else if (rng.nextDouble() < NEW_PARCEL_PROB) {
         	Parcel parcel =Parcel.builder(roadModel.getRandomPosition(rng),
                     roadModel.getRandomPosition(rng))
                     .serviceDuration(SERVICE_DURATION) /// this might cause problems since we calculate the PDP distance (which is SERVICE_DURATION) and we do not use a constant
@@ -255,7 +264,7 @@ public final class main {
     		    }
     			i++;
     		}
-        }
+        }*/
       }
 
       @Override
