@@ -378,15 +378,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		// if currentTime is larger than the desired delivery time for the parcel, send no proposal
 		
 		System.out.println("energy level before doing a proposal for truckagent " + this + " is " + energy);
-//		if (enoughEnergy(currentTruckPosition, auction.getParcel(), closestChargingStation)){
-			// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
-			// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
-			Proposal proposal = new Proposal(auction, proposer, currentToPickup, pickupToDelivery, timeCostBid);
-			System.out.println("Truckagent " + this + " needs " + timeCostBid + " time and " +calculateEnergyConsumptionTask(currentTruckPosition, auction.getParcel()) + " energy for auction " + auction.toString()+ "[energy left = "+energy+"]");
-			proposals.add(proposal);
-			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
-			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
-			sendDirectMessage(cnpProposalMessage, auction.getDispatchAgent());
+		// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
+		// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
+		Proposal proposal = new Proposal(auction, proposer, currentToPickup, pickupToDelivery, timeCostBid);
+		//System.out.println("Truckagent " + this + " needs " + timeCostBid + " time and " +calculateEnergyConsumptionTask(currentTruckPosition, auction.getParcel()) + " energy for auction " + auction.toString()+ "[energy left = "+energy+"]");
+		proposals.add(proposal);
+		// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
+		CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
+		sendDirectMessage(cnpProposalMessage, auction.getDispatchAgent());
 		
 	}
 	
