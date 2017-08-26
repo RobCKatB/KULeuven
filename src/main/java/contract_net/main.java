@@ -80,7 +80,7 @@ import com.google.common.collect.ImmutableBiMap;
  */
 public final class main {
 
-  public static final Mode mode = Mode.BASIC;
+  public static final Mode mode = Mode.PARALLEL_AUCTIONS;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
@@ -215,9 +215,14 @@ public final class main {
       public void tick(TimeLapse time) {
     	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
         if (time.getStartTime() > 10000*10000) {
+        	System.out.println("RESULTS SUMMARY");
+        	System.out.println("---------------");
         	getParcelResults(pdpModel);
         	getDistanceResults(truckAgents);
         	getNumberOfRecharges(truckAgents);
+        	getNumberOfDirectMessagesTruckAgents(truckAgents);
+        	getNumberOfDirectMessagesDispatchAgents(dispatchAgents);
+        	getNumberOfBroadcastMessagesDispatchAgents(dispatchAgents);
           //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
           //	      .getStatistics());
           System.out.println("END OF TEST");
@@ -319,6 +324,34 @@ public final class main {
   /*
    * generate statistics
    */
+  
+  public static int getNumberOfDirectMessagesTruckAgents(ArrayList<TruckAgent> truckAgents){
+	  int totalNumberOfDirectMessages = 0;
+	  for(TruckAgent truckAgent: truckAgents){
+		  totalNumberOfDirectMessages+=truckAgent.getNumberOfDirectMessages();
+	  }
+	  System.out.println("TOTAL NUMBER OF DIRECT MESSAGES sent from "+ truckAgents.size()+ " truckagents to " +NUM_DEPOTS+ " dispatchagents is "+totalNumberOfDirectMessages);
+	  return totalNumberOfDirectMessages;
+  }
+  
+  public static int getNumberOfDirectMessagesDispatchAgents(ArrayList<DispatchAgent> dispatchAgents){
+	  int totalNumberOfDirectMessagesDispatchAgents = 0;
+	  for(DispatchAgent dispatchAgent: dispatchAgents){
+		  totalNumberOfDirectMessagesDispatchAgents+=dispatchAgent.getNumberOfDirectMessages();
+	  }
+	  System.out.println("TOTAL NUMBER OF DIRECT MESSAGES sent from "+ dispatchAgents.size()+ " dispatchagnts to " +NUM_TRUCKS+ " truckagents is "+totalNumberOfDirectMessagesDispatchAgents);
+	  return totalNumberOfDirectMessagesDispatchAgents;
+  }
+  
+  public static int getNumberOfBroadcastMessagesDispatchAgents(ArrayList<DispatchAgent> dispatchAgents){
+	  int totalNumberOfBroadcastMessagesDispatchAgents = 0;
+	  for(DispatchAgent dispatchAgent: dispatchAgents){
+		  totalNumberOfBroadcastMessagesDispatchAgents+=dispatchAgent.getNumberOfBroadCastMessages();
+	  }
+	  System.out.println("TOTAL NUMBER OF BROADCAST MESSAGES sent from "+ dispatchAgents.size()+ " dispatchagents to " +NUM_TRUCKS+ " truckagents is "+totalNumberOfBroadcastMessagesDispatchAgents);
+	  return totalNumberOfBroadcastMessagesDispatchAgents;
+  }
+  
   public static int getNumberOfRecharges(ArrayList<TruckAgent> truckAgents){
 	  int totalNumberOfRecharges = 0;
 	  for(TruckAgent truckAgent: truckAgents){
@@ -350,10 +383,10 @@ public final class main {
 				deliveredParcels++;
 			} else if (com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.IN_CARGO == pdpModel.getParcelState(parcel)){
 				stillBeingTransportedParcels++;
-				System.out.println("Parcel "+parcel+" is still being transported.");
+				//System.out.println("Parcel "+parcel+" is still being transported.");
 			} else {
 				notHandledParcels++;
-				System.out.println("Parcel "+parcel+" is not delivered.");
+				//System.out.println("Parcel "+parcel+" is not delivered.");
 			}
 		}
 		System.out.println("PARCELS delivered = "+deliveredParcels);

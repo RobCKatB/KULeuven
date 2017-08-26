@@ -37,7 +37,8 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	private AuctionResult auctionResult;
 	private List<AuctionResult> auctionResults= new ArrayList<AuctionResult>();
 	private long currentTime;
-
+	private int numberOfBroadCastMessages;
+	private int numberOfDirectMessages;
 	// Collections for the four stages a parcel goes through.
 	private HashSet<Parcel> parcelsInitial = new HashSet<Parcel>();			// Parcels just added to this DispatchAgent.
 	private HashSet<Parcel> parcelsAuctionRunning = new HashSet<Parcel>();	// A running auction.
@@ -65,6 +66,8 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		//range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
 		//range = 9000000.0D;
 		range = Double.MAX_VALUE;
+		numberOfBroadCastMessages = 0;
+		numberOfDirectMessages = 0;
 	}
 
 	// thicklistener methods implemented
@@ -183,28 +186,6 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		return defaultpdpmodel.getVehicleState(truckAgent);
 	}
 
-	// if the dispatch agent wants to communicate with all other commUsers
-	// CNPMessage contains info about the Message and the ContractNetMessageType
-	public void sendBroadcastMessage(CNPMessage content){
-		if (!this.commDevice.isPresent()) {
-			throw new IllegalStateException("No commdevice activated for this dispatch agent");
-		}
-		CommDevice device = this.commDevice.get();
-		device.broadcast(content);
-	}
-
-	// if the dispatch agent wants to communicate to only one other CommUser, i.e. one specific truck
-	public void sendDirectMessage(CNPMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for dispatch agent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
-
-	public void sendCallForProposals(Auction auction, Parcel parcel, long currentTime, long AUCTION_DURATION){
-		ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
-		CNPMessage cnpMessage = new CNPMessage(auction, type, this, currentTime);
-		sendBroadcastMessage(cnpMessage);
-	}
 
 	public void dispatchParcels(long currentTime, long auctionDuration){
 		HashSet<Parcel> toBeDispatched = (HashSet<Parcel>) parcelsInitial.clone();
@@ -281,6 +262,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		return rejectedProposalsForThisParcel;
 	}
 	
+	/*
+	 * methods to send messages
+	 */
 	public void sendAcceptRejectProposalMessages(TimeLapse timeLapse, Parcel parcel, List<Proposal> validProposalsForThisParcel, List<Proposal> tooLateProposalsForThisParcel){
 		Proposal bestProp = selectBestProposal(validProposalsForThisParcel);
 		System.out.println("Best proposal :" +bestProp);
@@ -314,7 +298,31 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		*/
 		
 	}
-	
+	// if the dispatch agent wants to communicate with all other commUsers
+	// CNPMessage contains info about the Message and the ContractNetMessageType
+	public void sendBroadcastMessage(CNPMessage content){
+		if (!this.commDevice.isPresent()) {
+			throw new IllegalStateException("No commdevice activated for this dispatch agent");
+		}
+		CommDevice device = this.commDevice.get();
+		device.broadcast(content);
+		numberOfBroadCastMessages++;
+	}
+
+	// if the dispatch agent wants to communicate to only one other CommUser, i.e. one specific truck
+	public void sendDirectMessage(CNPMessage content, CommUser recipient) {
+		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for dispatch agent");}
+		CommDevice device = this.commDevice.get();
+		device.send(content, recipient);
+		numberOfDirectMessages++;
+	}
+
+	public void sendCallForProposals(Auction auction, Parcel parcel, long currentTime, long AUCTION_DURATION){
+		ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
+		CNPMessage cnpMessage = new CNPMessage(auction, type, this, currentTime);
+		sendBroadcastMessage(cnpMessage);
+	}
+
 	public void sendAcceptProposal(Auction auction, Proposal bestProp, ContractNetMessageType type, TimeLapse time){
 		CNPAcceptMessage cnpAcceptMessage = new CNPAcceptMessage(auction, type, this, bestProp.getProposer(), bestProp, time.getTime());
 		sendDirectMessage(cnpAcceptMessage, bestProp.getProposer());
@@ -339,6 +347,8 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	public void setAuctionResult(AuctionResult auctionResult) {
 		this.auctionResult = auctionResult;
 	}
+	
+	
 
 	// CommUser methods implemented
 	@Override
@@ -396,5 +406,23 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	public void setAuctionResults(List<AuctionResult> auctionResults) {
 		this.auctionResults = auctionResults;
 	}
+	
+
+	public int getNumberOfBroadCastMessages() {
+		return numberOfBroadCastMessages;
+	}
+
+	public void setNumberOfBroadCastMessages(int numberOfBroadCastMessages) {
+		this.numberOfBroadCastMessages = numberOfBroadCastMessages;
+	}
+
+	public int getNumberOfDirectMessages() {
+		return numberOfDirectMessages;
+	}
+
+	public void setNumberOfDirectMessages(int numberOfDirectMessages) {
+		this.numberOfDirectMessages = numberOfDirectMessages;
+	}
+
 
 }

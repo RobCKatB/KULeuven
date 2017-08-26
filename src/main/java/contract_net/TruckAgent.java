@@ -38,13 +38,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private double energy;
 	private long travelledDistance;	
 	private int numberOfRecharges;
+	private int numberOfDirectMessages;
 	private DefaultPDPModel defaultpdpmodel;
 	private RoadModel roadModel;
     private List<Proposal> proposals = new ArrayList<Proposal>();
     private List<Proposal> acceptedProposals = new ArrayList<Proposal>();
 	private static final double SPEED = 1000d;
 	private static final double ENERGYCONSUMPTION = 1d; // Per unit mileage
-	private static final double ENERGYCAPACITY = 1000000d;
+	private static final double ENERGYCAPACITY = 10000000d;
 
 	// for CommUser
 	private final double range;
@@ -88,6 +89,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		energy = ENERGYCAPACITY;
 		travelledDistance = 0L;
 		numberOfRecharges = 0;
+		numberOfDirectMessages = 0;
 	}
 
 	@Override
@@ -157,12 +159,6 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	}
 
 	protected abstract void afterDelivery(TimeLapse time);
-
-	private void sendDirectMessage(CNPMessage content, CommUser recipient) {
-		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
-		CommDevice device = this.commDevice.get();
-		device.send(content, recipient);
-	}
 
 
 	/* 
@@ -392,6 +388,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	/*
 	 * send messages from TruckAgent to DispatchAgent
 	 */
+	
+	private void sendDirectMessage(CNPMessage content, CommUser recipient) {
+		if (!this.commDevice.isPresent()) {throw new IllegalStateException("No commdevice activated for truckagent");}
+		CommDevice device = this.commDevice.get();
+		device.send(content, recipient);
+		numberOfDirectMessages++;
+	}
+
 	public void sendRefusal(Auction auction, String refusalReason, TimeLapse timeLapse){
 		CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getDispatchAgent(), refusalReason, timeLapse.getTime());
 		sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());	
@@ -461,6 +465,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 
 	public void setNumberOfRecharges(int numberOfRecharges) {
 		this.numberOfRecharges = numberOfRecharges;
+	}
+
+	public int getNumberOfDirectMessages() {
+		return numberOfDirectMessages;
+	}
+
+	public void setNumberOfDirectMessages(int numberOfDirectMessages) {
+		this.numberOfDirectMessages = numberOfDirectMessages;
 	}
 
 	@Override

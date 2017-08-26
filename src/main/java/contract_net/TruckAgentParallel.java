@@ -30,7 +30,7 @@ public class TruckAgentParallel extends TruckAgent {
 					doProposal(this.getPosition().get(), m.getAuction(), this, time);
 				} else {
 					sendRefusal(m.getAuction(), "Charging or busy.", time);
-					System.out.println(this+" > refusal sent for "+m.getAuction());
+					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
 				}
 				break;
 				

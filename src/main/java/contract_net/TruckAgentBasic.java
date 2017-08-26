@@ -34,7 +34,7 @@ public class TruckAgentBasic extends TruckAgent {
 					System.out.println(this+" > proposal sent for "+m.getAuction());
 				} else {
 					sendRefusal(m.getAuction(), "Charging or busy", time);
-					System.out.println(this+" > refusal sent for "+m.getAuction());
+					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
 				}
 				break;
 			case ACCEPT_PROPOSAL:
