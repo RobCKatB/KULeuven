@@ -100,7 +100,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 					break;
 				case CANCEL:
 					CNPCancelMessage cancelMessage = (CNPCancelMessage)m;
-					System.out.println("CANCEL : "+ cancelMessage.from() + cancelMessage.getAuction()+cancelMessage.getCancelReason());
+//					System.out.println("CANCEL : "+ cancelMessage.from() + cancelMessage.getAuction()+cancelMessage.getCancelReason());
 					// Remove the auction
 					auctions.remove(cancelMessage.getAuction());
 					// Place the parcel back in the right set
@@ -143,14 +143,14 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			if(auction.isActive() && auction.isExpired(timeLapse.getEndTime())){
 			
 				List<Proposal> validProposalsForThisParcel = auction.getProposals();
-				if(validProposalsForThisParcel.isEmpty()){
+				/*if(validProposalsForThisParcel.isEmpty()){
 					System.out.println("No valid proposals.");
 				}else{
 					System.out.println("Valid proposals for "+ auction+":");
 					for(Proposal p: validProposalsForThisParcel){
 						System.out.println(p.toString());
 					}
-				}
+				}*/
 				List<Proposal> tooLateProposalsForThisParcel = auction.getTooLateProposals();
 				if(!validProposalsForThisParcel.isEmpty() || !tooLateProposalsForThisParcel.isEmpty()){
 					sendAcceptRejectProposalMessages(timeLapse, parcel, validProposalsForThisParcel, tooLateProposalsForThisParcel);
@@ -199,7 +199,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 			parcelsInitial.remove(parcel);
 			parcelsAuctionRunning.add(parcel);
 			
-			System.out.println(this+" > Send call propposal for "+parcel+". "+ auction.toString());
+//			System.out.println(this+" > Send call propposal for "+parcel+". "+ auction.toString());
 		}
 	}
 
@@ -267,17 +267,17 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	 */
 	public void sendAcceptRejectProposalMessages(TimeLapse timeLapse, Parcel parcel, List<Proposal> validProposalsForThisParcel, List<Proposal> tooLateProposalsForThisParcel){
 		Proposal bestProp = selectBestProposal(validProposalsForThisParcel);
-		System.out.println("Best proposal :" +bestProp);
+		//System.out.println("Best proposal :" +bestProp);
 		List<Proposal> rejectedProposalsForThisParcel = new ArrayList<Proposal>();
 		if(bestProp != null){
 			sendAcceptProposal(bestProp.getAuction(), bestProp, ContractNetMessageType.ACCEPT_PROPOSAL, timeLapse);
-			System.out.println(this+" > ACCEPT proposal sent to truck "+bestProp.getProposer()+" for "+bestProp.getAuction().getParcel());
+			//System.out.println(this+" > ACCEPT proposal sent to truck "+bestProp.getProposer()+" for "+bestProp.getAuction().getParcel());
 			// send REJECT_PROPOSAL message to all TruckAgents who sent a proposal to this auction, but did not win
 			for(Proposal p: validProposalsForThisParcel){
 				if(!p.equals(bestProp)){
 					rejectedProposalsForThisParcel.add(p);
 					sendRejectProposal(p.getAuction(), ContractNetMessageType.REJECT_PROPOSAL, p.getProposer(), "lost auction", timeLapse);
-					System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer()+" for "+p.getAuction().getParcel());
+					//System.out.println(this+" > REJECT proposal sent to truck "+p.getProposer()+" for "+p.getAuction().getParcel());
 				}
 			}
 		}

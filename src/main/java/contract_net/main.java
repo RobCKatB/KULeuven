@@ -80,7 +80,7 @@ import com.google.common.collect.ImmutableBiMap;
  */
 public final class main {
 
-  public static final Mode mode = Mode.DRIVING_AUCTIONS;
+  public static final Mode mode = Mode.PARALLEL_AUCTIONS;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 2;
@@ -100,7 +100,7 @@ public final class main {
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
     newHashMap();
   
-  private static final long TEST_STOP_TIME = 200 * 60 * 10000;
+  private static final long TEST_STOP_TIME = 50000 * 10000;
   private static final int TEST_SPEED_UP = 64;
 	protected static final Logger LOGGER = LoggerFactory
 			.getLogger(main.class);
@@ -214,7 +214,7 @@ public final class main {
       @Override
       public void tick(TimeLapse time) {
     	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
-        if (time.getStartTime() > 10000*10000) {
+        if (time.getStartTime() >= TEST_STOP_TIME) {
         	System.out.println("RESULTS SUMMARY");
         	System.out.println("---------------");
         	getParcelResults(pdpModel);
@@ -285,7 +285,7 @@ public final class main {
     if (testing) {
       view = view.withAutoClose()
         .withAutoPlay()
-        .withSimulatorEndTime(TEST_STOP_TIME)
+//        .withSimulatorEndTime(TEST_STOP_TIME)
         .withSpeedUp(TEST_SPEED_UP);
     } else if (m != null && list != null && display != null) {
       view = view.withMonitor(m)

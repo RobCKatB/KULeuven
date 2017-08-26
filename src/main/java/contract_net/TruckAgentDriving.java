@@ -41,7 +41,7 @@ public class TruckAgentDriving extends TruckAgent {
 				if(isCharging){
 					// Not right state
 					sendRefusal(m.getAuction(), "Charging or busy", time);
-					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
+//					System.out.println(this+" > refusal sent for "+m.getAuction()+" because busy or charging [energy level = "+this.getEnergy()+"]");
 				}else if(!enoughEnergy(this.getPosition().get(), m.getAuction().getParcel(), findClosestChargingStation())){
 					// Not enough energy
 					goCharging();
@@ -52,7 +52,7 @@ public class TruckAgentDriving extends TruckAgent {
 					// Everything fine; do proposal
 					doProposal(this.getPosition().get(), m.getAuction(), this, time);
 					validProposals.add(m.getAuction());
-					System.out.println(this+" > proposal sent for "+m.getAuction());
+//					System.out.println(this+" > proposal sent for "+m.getAuction());
 				}
 				break;
 				
@@ -127,7 +127,7 @@ public class TruckAgentDriving extends TruckAgent {
 	protected boolean enoughEnergy(Point currTruckPosition, Parcel parcel, Optional<ChargingStation> chargingStation){
 		double energyNeeded = calculateEnergyConsumptionTask(getLastQueuePosition(), parcel) + calculateEnergyConsumptionToChargingStation(parcel.getDeliveryLocation(), chargingStation);
 		energyNeeded += energyUsedByQueue;
-		System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
+//		System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
 		if (energyNeeded <=  energy){
 			return true;
 		}

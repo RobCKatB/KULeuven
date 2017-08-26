@@ -134,7 +134,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 				defaultpdpmodel.pickup(this, currParcel.get(), time);
 				pickupTime = time.getTime();
 				isCarrying = true;
-				System.out.println("PICKUP of parcel " + currParcel + " by "+this+" [energy left = "+ energy+"] [travelled distance = "+travelledDistance+"]");
+				//System.out.println("PICKUP of parcel " + currParcel + " by "+this+" [energy left = "+ energy+"] [travelled distance = "+travelledDistance+"]");
 			}
 		}else{
 			// Drive to destination
@@ -149,7 +149,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 				sendInformResult(acceptedAuction, ContractNetMessageType.INFORM_RESULT, time, pickupTime,
 						deliveryTime, startTimeTruckMoveToParcel, acceptMessageTime);
 
-				System.out.println("DELIVERY of parcel " + currParcel + " by " + this + " [energy left ="+ energy+"] [travelled distance = "+travelledDistance+"]");
+				//System.out.println("DELIVERY of parcel " + currParcel + " by " + this + " [energy left ="+ energy+"] [travelled distance = "+travelledDistance+"]");
 				isCarrying = false;
 				isIdle = true;
 				currParcel = Optional.absent();
@@ -258,7 +258,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	 */
 	protected boolean enoughEnergy(Point currTruckPosition, Parcel parcel, Optional<ChargingStation> chargingStation){
 		double energyNeeded = calculateEnergyConsumptionTask(currTruckPosition, parcel) + calculateEnergyConsumptionToChargingStation(parcel.getDeliveryLocation(), chargingStation);
-		System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
+		//System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
 		if (energyNeeded <=  energy){
 			return true;
 		}
@@ -377,7 +377,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		// TODO: in more advanced version of the program with a certain delivery time for a parcel:
 		// if currentTime is larger than the desired delivery time for the parcel, send no proposal
 		
-		System.out.println("energy level before doing a proposal for truckagent " + this + " is " + energy);
+//		System.out.println("energy level before doing a proposal for truckagent " + this + " is " + energy);
 		// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 		// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 		Proposal proposal = new Proposal(auction, proposer, currentToPickup, pickupToDelivery, timeCostBid);
