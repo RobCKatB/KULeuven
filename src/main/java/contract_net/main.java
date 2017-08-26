@@ -83,8 +83,8 @@ public final class main {
   public static final Mode mode = Mode.BASIC;
 
   private static final int NUM_DEPOTS = 2;
-  private static final int NUM_TRUCKS = 5;
-  private static final int NUM_PARCELS = 300;
+  private static final int NUM_TRUCKS = 10;
+  private static final int NUM_PARCELS = 30;
   private static final int NUM_CHARINGSTATIONS = 2;
 
   // time in ms

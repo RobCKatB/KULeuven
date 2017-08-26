@@ -29,7 +29,7 @@ public class TruckAgentParallel extends TruckAgent {
 				if(isCharging){
 					// Not right state
 					sendRefusal(m.getAuction(), "charging", time);
-					System.out.println(this+" > refusal sent for "+m.getAuction()+" because charging [energy level = "+this.getEnergy()+"]");
+//					System.out.println(this+" > refusal sent for "+m.getAuction()+" because charging [energy level = "+this.getEnergy()+"]");
 				}else if(!isIdle){
 					// Not right state
 					sendRefusal(m.getAuction(), "busy", time);
@@ -38,7 +38,7 @@ public class TruckAgentParallel extends TruckAgent {
 					// Not enough energy
 					goCharging();
 					sendRefusal(m.getAuction(), "truck is charging", time);
-					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
+//					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
 				}else{
 					// Everything fine; do proposal
 					doProposal(this.getPosition().get(), m.getAuction(), this, time);

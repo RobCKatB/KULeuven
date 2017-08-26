@@ -34,7 +34,7 @@ public class TruckAgentBasic extends TruckAgent {
 					// Not enough energy
 					goCharging();
 					sendRefusal(m.getAuction(), "truck is charging", time);
-					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
+//					System.out.println(this+" > REFUSAL sent because not suffient energy [energy left = "+ getEnergy() + "; energy needed = "+calculateEnergyConsumptionTask(this.getPosition().get(), m.getAuction().getParcel())+"] for auction " + m.getAuction());
 				}else{
 					// Everything fine; do proposal
 					doProposal(this.getPosition().get(), m.getAuction(), this, time);

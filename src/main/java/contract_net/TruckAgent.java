@@ -437,7 +437,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		long timeCFPToDelivery=deliveryTime - CFPTimeSent;
 		CNPInformResultMessage cnpInformResultMessage = new CNPInformResultMessage(auction, type, this, auction.getDispatchAgent(), timeTruckToPickup, timePickupToDelivery, timeTruckToPickupToDelivery, timeCFPToDelivery, timeLapse.getTime());
 		sendDirectMessage(cnpInformResultMessage, auction.getDispatchAgent());	
-		System.out.println("INFORM RESULT sent: " +cnpInformResultMessage.toString());
+//		System.out.println("INFORM RESULT sent: " +cnpInformResultMessage.toString());
 	}
 	
 	protected void sendCancelMessage(Auction auction, String cancelReason, TimeLapse timeLapse){

@@ -1,0 +1,205 @@
+==================================================================
+mode = BASIC
+TRUCKS = 5
+PARCELS = 30
+---------------
+TOTAL TIME = 42985000
+PARCELS delivered = 30
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 30
+TOTAL DISTANCE travelled by 5 truckagents is 55807
+TOTAL TIME travelled by 5 truckagents is 1794 min
+TOTAL NUMBER OF RECHARGES needed by 5 truckagents is 10
+TOTAL NUMBER OF DIRECT MESSAGES sent from 5 truckagents to 2 dispatchagents is 212815
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 5 truckagents is 40
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 5 truckagents is 42551
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 111 min
+==================================================================
+mode = BASIC
+TRUCKS = 5
+PARCELS = 300
+---------------
+TOTAL TIME = 455987000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 5 truckagents is 615842
+TOTAL TIME travelled by 5 truckagents is 19923 min
+TOTAL NUMBER OF RECHARGES needed by 5 truckagents is 250
+TOTAL NUMBER OF DIRECT MESSAGES sent from 5 truckagents to 2 dispatchagents is 30036475
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 5 truckagents is 310
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 5 truckagents is 6007175
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 114 min
+==================================================================
+mode = BASIC
+TRUCKS = 10
+PARCELS = 30
+---------------
+TOTAL TIME = 24871000
+PARCELS delivered = 30
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 30
+TOTAL DISTANCE travelled by 10 truckagents is 55269
+TOTAL TIME travelled by 10 truckagents is 1775 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 0
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 163510
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 75
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 16345
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 114 min
+==================================================================
+mode = BASIC
+TRUCKS = 10
+PARCELS = 300
+---------------
+TOTAL TIME = 218304000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 10 truckagents is 583950
+TOTAL TIME travelled by 10 truckagents is 18938 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 240
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 27819030
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 347
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 2781843
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 110 min
+==================================================================
+mode = PARALLEL_AUCTIONS
+TRUCKS = 5
+PARCELS = 30
+---------------
+TOTAL TIME = 36788000
+PARCELS delivered = 30
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 30
+TOTAL DISTANCE travelled by 5 truckagents is 41923
+TOTAL TIME travelled by 5 truckagents is 1790 min
+TOTAL NUMBER OF RECHARGES needed by 5 truckagents is 0
+TOTAL NUMBER OF DIRECT MESSAGES sent from 5 truckagents to 2 dispatchagents is 130620
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 5 truckagents is 475
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 5 truckagents is 26047
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 85 min
+==================================================================
+mode = PARALLEL_AUCTIONS
+TRUCKS = 5
+PARCELS = 300
+---------------
+TOTAL TIME = 307787000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 5 truckagents is 411983
+TOTAL TIME travelled by 5 truckagents is 18644 min
+TOTAL NUMBER OF RECHARGES needed by 5 truckagents is 165
+TOTAL NUMBER OF DIRECT MESSAGES sent from 5 truckagents to 2 dispatchagents is 15978078
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 5 truckagents is 44399
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 5 truckagents is 3186974
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 78 min
+==================================================================
+mode = PARALLEL_AUCTIONS
+TRUCKS = 10
+PARCELS = 30
+---------------
+TOTAL TIME = 28324000
+PARCELS delivered = 30
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 30
+TOTAL DISTANCE travelled by 10 truckagents is 44288
+TOTAL TIME travelled by 10 truckagents is 1775 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 0
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 102393
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 579
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 10210
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 86 min
+==================================================================
+mode = PARALLEL_AUCTIONS
+TRUCKS = 10
+PARCELS = 300
+---------------
+TOTAL TIME = 152108000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 10 truckagents is 393210
+TOTAL TIME travelled by 10 truckagents is 18144 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 150
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 13849789
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 44734
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 1380767
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 75 min
+==================================================================
+mode = DRIVING_AUCTIONS
+TRUCKS = 5
+PARCELS = 30
+---------------
+TOTAL TIME = 38662000
+PARCELS delivered = 30
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 30
+TOTAL DISTANCE travelled by 5 truckagents is 49952
+TOTAL TIME travelled by 5 truckagents is 1790 min
+TOTAL NUMBER OF RECHARGES needed by 5 truckagents is 0
+TOTAL NUMBER OF DIRECT MESSAGES sent from 5 truckagents to 2 dispatchagents is 888
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 5 truckagents is 715
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 5 truckagents is 143
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 323 min
+==================================================================
+mode = DRIVING_AUCTIONS
+TRUCKS = 5
+PARCELS = 300
+---------------
+TOTAL TIME = 439708000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 5 truckagents is 568049
+TOTAL TIME travelled by 5 truckagents is 18695 min
+TOTAL NUMBER OF RECHARGES needed by 5 truckagents is 160
+TOTAL NUMBER OF DIRECT MESSAGES sent from 5 truckagents to 2 dispatchagents is 23954400
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 5 truckagents is 50228
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 5 truckagents is 4783805
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 553 min
+==================================================================
+mode = DRIVING_AUCTIONS
+TRUCKS = 10
+PARCELS = 30
+---------------
+TOTAL TIME = 23113000
+PARCELS delivered = 30
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 30
+TOTAL DISTANCE travelled by 10 truckagents is 50422
+TOTAL TIME travelled by 10 truckagents is 1775 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 0
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 1075
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 950
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 95
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 212 min
+==================================================================
+mode = DRIVING_AUCTIONS
+TRUCKS = 10
+PARCELS = 300
+---------------
+TOTAL TIME = 231937000
+PARCELS delivered = 300
+PARCELS still being transported = 0
+PARCELS not handled = 0
+PARCELS total = 300
+TOTAL DISTANCE travelled by 10 truckagents is 533554
+TOTAL TIME travelled by 10 truckagents is 18742 min
+TOTAL NUMBER OF RECHARGES needed by 10 truckagents is 155
+TOTAL NUMBER OF DIRECT MESSAGES sent from 10 truckagents to 2 dispatchagents is 17546472
+TOTAL NUMBER OF DIRECT MESSAGES sent from 2 dispatchagnts to 10 truckagents is 63741
+TOTAL NUMBER OF BROADCAST MESSAGES sent from 2 dispatchagents to 10 truckagents is 1752146
+AVERAGE TIME BETWEEN CALL FOR PROPOSAL AND PARCEL DELIVERY: 524 min
+==================================================================

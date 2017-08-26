@@ -95,7 +95,7 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 					break;
 				case FAILURE:
 					CNPFailureMessage failureMessage = (CNPFailureMessage)m;
-					System.out.println("Truckagent "+ failureMessage.from() + " has sent failed to do a proposal for auction "+ failureMessage.getAuction().toString());
+//					System.out.println("Truckagent "+ failureMessage.from() + " has sent failed to do a proposal for auction "+ failureMessage.getAuction().toString());
 					// TODO do nothing or in more advanced form of the program: rebroadcast call for proposal
 					break;
 				case CANCEL:
@@ -109,21 +109,21 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 					break;
 				case INFORM_DONE:
 					CNPInformDoneMessage cnpInformDoneMessage = (CNPInformDoneMessage)m;
-					System.out.println("Truckagent "+ cnpInformDoneMessage.from() + " has sent an INFORM DONE message "+ cnpInformDoneMessage.toString());
+//					System.out.println("Truckagent "+ cnpInformDoneMessage.from() + " has sent an INFORM DONE message "+ cnpInformDoneMessage.toString());
 					// truck tells that parcel is delivered
 					// TODO: store in AuctionResult that parcel is delivered
 					break;
 				case INFORM_RESULT:
 					// an INFORM_RESULT message comes from the truckagent that won the action, so the truckagent that had the best proposal for the PDP task
 					CNPInformResultMessage informResultMessage = (CNPInformResultMessage)m;
-					System.out.println("INFORM RESULT message received by dispatchagent from truckagent "+  informResultMessage.toString());
+//					System.out.println("INFORM RESULT message received by dispatchagent from truckagent "+  informResultMessage.toString());
 					List<Proposal> validProposalsForThisParcel= informResultMessage.getAuction().getProposals();
 					List<Proposal> tooLateProposalsForThisParcel= informResultMessage.getAuction().getTooLateProposals();
 					Proposal bestProposalForThisParcel = selectBestProposal(validProposalsForThisParcel);
 					List<Proposal> rejectedProposalsForThisParcel= getRejectedProposalsForThisParcel(informResultMessage.getAuction().getParcel(), bestProposalForThisParcel, validProposalsForThisParcel, tooLateProposalsForThisParcel);
 					
 					auctionResult = new AuctionResult(informResultMessage.getAuction(), bestProposalForThisParcel, bestProposalForThisParcel.getProposer(), AUCTION_DURATION, informResultMessage.getTimeTruckToPickup(), informResultMessage.getTimePickupToDelivery(), informResultMessage.getTimeTruckToPickupToDelivery(), informResultMessage.getTimeCFPToDelivery(), rejectedProposalsForThisParcel);
-					System.out.println("AUCTION RESULT: " +auctionResult.toString());
+//					System.out.println("AUCTION RESULT: " +auctionResult.toString());
 					auctionResults.add(auctionResult);
 
 					// TODO: set status of Package on IS_DELIVERED if this was not yet the case
