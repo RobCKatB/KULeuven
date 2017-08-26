@@ -83,8 +83,8 @@ public final class main {
   public static final Mode mode = Mode.BASIC;
 
   private static final int NUM_DEPOTS = 2;
-  private static final int NUM_TRUCKS = 10;
-  private static final int NUM_PARCELS = 30;
+  private static final int NUM_TRUCKS = 5;
+  private static final int NUM_PARCELS = 300;
   private static final int NUM_CHARINGSTATIONS = 2;
 
   // time in ms
@@ -100,7 +100,7 @@ public final class main {
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
     newHashMap();
   
-  private static final long TEST_STOP_TIME = 50000 * 10000;
+//  private static final long TEST_STOP_TIME = 50000 * 10000;
   private static final int TEST_SPEED_UP = 64;
 	protected static final Logger LOGGER = LoggerFactory
 			.getLogger(main.class);
@@ -222,7 +222,7 @@ public final class main {
   			}
   		}
   		
-        if (done || time.getStartTime() >= TEST_STOP_TIME) {
+        if (done) {
         	System.out.println("RESULTS SUMMARY");
         	System.out.println("---------------");
         	System.out.println("TOTAL TIME = "+time.getStartTime());
