@@ -53,6 +53,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -156,7 +157,8 @@ public final class main {
     final CommModel commModel = simulator.getModelProvider().getModel(CommModel.class);
     final List<AuctionResult> auctionResultsList;
     final ArrayList<DispatchAgent> dispatchAgents = new ArrayList<DispatchAgent>();
-
+    final ArrayList<TruckAgent> truckAgents = new ArrayList<TruckAgent>();
+    
     // generate an empty list to store the results of each auction
     final AuctionResults auctionResults = new AuctionResults();
     auctionResultsList = auctionResults.getAuctionResults();
@@ -183,6 +185,7 @@ public final class main {
     			truckAgent = new TruckAgentDriving(defaultpdpmodel, roadModel, roadModel.getRandomPosition(rng),TRUCK_CAPACITY, rng);
     			break;
     	}
+    	truckAgents.add(truckAgent);
     	simulator.register(truckAgent);
     }
     
@@ -213,6 +216,7 @@ public final class main {
     	  //TODO endTime veranderen naar 10000000 om txt file te kunnen schrijven
         if (time.getStartTime() > 10000000) {
         	getParcelResults(pdpModel);
+        	getDistanceResults(truckAgents);
           //System.out.println(simulator.getModelProvider().getModel(StatsTracker.class)
           //	      .getStatistics());
           System.out.println("END OF TEST");
@@ -312,6 +316,15 @@ public final class main {
   }
   
  
+  public static long getDistanceResults(ArrayList<TruckAgent> truckAgents){
+	  long totalDistanceTravelled = 0;
+	  for(TruckAgent truckAgent: truckAgents){
+		  totalDistanceTravelled+=truckAgent.getTravelledDistance();
+	  }
+	  System.out.println("TOTAL DISTANCE travelled by "+ truckAgents.size()+ " truckagents is "+totalDistanceTravelled);
+	  return totalDistanceTravelled;
+  }
+  
   public static void getParcelResults(PDPModel pdpModel){
 
 		int totalParcels = 0;
@@ -373,7 +386,7 @@ public static void writeToTxt(List<AuctionResult> auctionResults, DispatchAgent 
 			  writer.print("\t");
 			  writer.print(auctionResult.getBestProposal().getTimeCostProposal());
 			  writer.print("\t");
-			  writer.print(auctionResult.getBestProposal().getTimeCostProposal());
+			  writer.print(auctionResult.getBestProposal().getDistanceCostProposal(auctionResult.getBestProposal().getTimeCostProposal()));
 			  writer.print("\t");
 			  writer.print(auctionResult.getAuctionDuration());
 			  writer.print("\t");

@@ -6,35 +6,47 @@ public class Proposal {
 	private TruckAgent proposer;
 	private Auction auction;
 	private long timeCostProposal;
-	private long pickupToDelivery;
-	private long currentToPickup;
+	private long pickupToDeliveryTime;
+	private long currentToPickupTime;
 	private boolean auctionOpen;
 	
 	
 	//TODO ?? of TruckAgent vervangen door CNPMessage proposal, waarbij CNPMessage.getSender() de truckAgent oplevert
-	public Proposal(Auction auction, TruckAgent proposer, long currentToPickup, long pickupToDelivery, long timeCostProposal){
+	public Proposal(Auction auction, TruckAgent proposer, long currentToPickupTime, long pickupToDeliveryTime, long timeCostProposal){
 		this.auction = auction;
 		this.proposer = proposer;		
 		this.timeCostProposal = timeCostProposal;
-		this.pickupToDelivery = pickupToDelivery;
-		this.currentToPickup = currentToPickup;
+		this.pickupToDeliveryTime = pickupToDeliveryTime;
+		this.currentToPickupTime = currentToPickupTime;
+		}
+	
+	
+	public long getPickupToDeliveryDistance(long pickupToDeliveryTime){
+		return pickupToDeliveryTime * (long)this.getProposer().getSpeed();
 	}
 	
-
-	public long getPickupToDelivery() {
-		return pickupToDelivery;
+	public long getCurrentToPickupDistance(long currentToPickupTime){
+		return currentToPickupTime * (long)this.getProposer().getSpeed();
+	}
+	
+	public long getDistanceCostProposal(long timeCostProposal){
+		return timeCostProposal * (long)this.getProposer().getSpeed();
 	}
 
-	public void setPickupToDelivery(long pickupToDelivery) {
-		this.pickupToDelivery = pickupToDelivery;
+	public long getPickupToDeliveryTime() {
+		return pickupToDeliveryTime;
 	}
 
-	public long getCurrentToPickup() {
-		return currentToPickup;
+	public void setPickupToDeliveryTime(long pickupToDeliveryTime) {
+		this.pickupToDeliveryTime = pickupToDeliveryTime;
 	}
 
-	public void setCurrentToPickup(long currentToPickup) {
-		this.currentToPickup = currentToPickup;
+	public long getCurrentToPickupTime() {
+		return currentToPickupTime;
+	}
+
+	public void setCurrentToPickupTime(long currentToPickupTime) {
+		this.currentToPickupTime = currentToPickupTime;
 	}
 
 	// calculate travel time for this bidder for the current auction
@@ -79,9 +91,9 @@ public class Proposal {
 		 			.append("; calculated time needed for total PDP: ")
 					.append(getTimeCostProposal())
 					.append("; calculated time from current truck position to parcel pickup position: ")
-		 			.append(currentToPickup)
+		 			.append(currentToPickupTime)
 		 			.append("; calculated time from parcel pickup position to parcel delivery position:  ")
-		 			.append(pickupToDelivery);
+		 			.append(pickupToDeliveryTime);
 
 		builder.append("]");
 			  

@@ -36,7 +36,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private Optional<ChargingStation> closestChargingStation;
 	private int capacity;
 	private double energy;
-
+	private long travelledDistance;	
 	private DefaultPDPModel defaultpdpmodel;
 	private RoadModel roadModel;
     private List<Proposal> proposals = new ArrayList<Proposal>();
@@ -85,6 +85,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		isIdle = true;
 		isCarrying = false;
 		energy = ENERGYCAPACITY;
+		travelledDistance = 0;
 	}
 
 	@Override
@@ -122,10 +123,11 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			//Pickup?
 			if (roadModel.equalPosition(this, currParcel.get())) {
 				this.consumeEnergy(calculateEnergyConsumptionTruckToPickup(oldPosition, currParcel.get()));
+				travelledDistance += this.calculatePDPDistanceCurrentToPickup(oldPosition, currParcel.get());
 				defaultpdpmodel.pickup(this, currParcel.get(), time);
 				pickupTime = time.getTime();
 				isCarrying = true;
-				System.out.println(this+" > PICKUP of parcel " + currParcel + " [energy level = "+ energy+"]");
+				System.out.println("PICKUP of parcel " + currParcel + " by "+this+" [energy left = "+ energy+"] [travelled distance = "+travelledDistance+"]");
 			}
 		}else{
 			// Drive to destination
@@ -134,6 +136,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			// Dropoff?
 			if (roadModel.getPosition(this).equals(currParcel.get().getDeliveryLocation())) {
 				this.consumeEnergy(calculateEnergyConsumptionPickupToDeliver(oldPosition, currParcel.get()));
+				travelledDistance += this.calculatePDPDistancePickupToDelivery(oldPosition, currParcel.get());
 				defaultpdpmodel.deliver(this, currParcel.get(), time);
 				long deliveryTime = time.getTime();
 				// send INFORM_DONE and INFORM_RESULT message to
@@ -142,7 +145,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 				sendInformResult(acceptedAuction, ContractNetMessageType.INFORM_RESULT, time, pickupTime,
 						deliveryTime, startTimeTruckMoveToParcel, acceptMessageTime);
 
-				System.out.println("DELIVERY of parcel " + currParcel + " by " + this.toString() + " [energy level ="+ energy+"]");
+				System.out.println("DELIVERY of parcel " + currParcel + " by " + this + " [energy left ="+ energy+"] [travelled distance = "+travelledDistance+"]");
 				isCarrying = false;
 				isIdle = true;
 				currParcel = Optional.absent();
@@ -226,7 +229,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	 */
 	private boolean enoughEnergy(Point currTruckPosition, Parcel parcel, Optional<ChargingStation> chargingStation){
 		double energyNeeded = calculateEnergyConsumptionTask(currTruckPosition, parcel) + calculateEnergyConsumptionToChargingStation(parcel.getDeliveryLocation(), chargingStation);
-		System.out.println("energy needed:" + energyNeeded+ "[energy level="+energy+"]");
+		System.out.println("energy needed:" + energyNeeded+ "[energy left="+energy+"]");
 		if (energyNeeded <=  energy){
 			return true;
 		}
@@ -356,7 +359,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			// TODO: in more advanced form of program, we could let the truck send a proposal even if there is not enough energy
 			// taking into account the time needed for energy loading. In that case, no refusal has to be sent like in our case.
 			Proposal proposal = new Proposal(auction, proposer, currentToPickup, pickupToDelivery, timeCostBid);
-			System.out.println("Truckagent " + this + " needs " + timeCostBid + " time and " +calculateEnergyConsumptionTask(currentTruckPosition, auction.getParcel()) + " energy for auction " + auction.toString()+ "[energy="+energy+"]");
+			System.out.println("Truckagent " + this + " needs " + timeCostBid + " time and " +calculateEnergyConsumptionTask(currentTruckPosition, auction.getParcel()) + " energy for auction " + auction.toString()+ "[energy left = "+energy+"]");
 			proposals.add(proposal);
 			// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 			CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
@@ -372,12 +375,13 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 			roadModel.moveTo(this, closestChargingStation.get().getPosition().get(), timelapse);
 			// truck docks itself to the charging station and in the tick of the charging station he gets charged
 			if (roadModel.equalPosition(this, closestChargingStation.get())){
-				System.out.println("BEFORE CHARGING: [energy level = "+energy +"]");
+				System.out.println("BEFORE CHARGING: [energy left = "+energy +"] [travelled distance = "+travelledDistance+"]");
 				// consume the energy for moving to the charging station once the truck is at the charging station
 				this.consumeEnergy(calculateEnergyConsumptionToChargingStation(currTruckPos, closestChargingStation));
+				travelledDistance+=this.calculatePointToPointDistance(currTruckPos, chargingStation.get().getPosition().get());
 			}
 			charge(energy);
-			System.out.println("AFTER CHARGING: [energy level = "+energy +"], max energy is " +ENERGYCAPACITY);
+			System.out.println("AFTER CHARGING: [energy left = "+energy +"], max energy is " +ENERGYCAPACITY+" [travelled distance = "+travelledDistance+"]");
 			}
 		}
 
@@ -439,6 +443,14 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		this.isCharging = isCharging;
 	}
 
+	public long getTravelledDistance() {
+		return travelledDistance;
+	}
+
+	public void setTravelledDistance(long travelledDistance) {
+		this.travelledDistance = travelledDistance;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder("Truck [");

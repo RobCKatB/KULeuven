@@ -106,13 +106,13 @@ public class AuctionResult {
 	}
 
 	public long getPickupTardiness(Proposal bestProposal, long realTimeTruckToPickup){
-		long calculatedTimeTruckToPickup = bestProposal.getCurrentToPickup();
+		long calculatedTimeTruckToPickup = bestProposal.getCurrentToPickupTime();
 		return realTimeTruckToPickup - calculatedTimeTruckToPickup;
 	}
 	
 	// negative results mean that the truck was faster than calculated, positive results mean that the truck was slower than calculated
 	public long getDeliveryTardiness(Proposal bestProposal, long realTimePickupToDelivery){
-		long calculatedTimePickupToDelivery = bestProposal.getPickupToDelivery();
+		long calculatedTimePickupToDelivery = bestProposal.getPickupToDeliveryTime();
 		return realTimePickupToDelivery - calculatedTimePickupToDelivery;
 	}
 	
@@ -131,6 +131,12 @@ public class AuctionResult {
 		sb.append("\n"); 
 		sb.append(" winning proposal ");
 		sb.append(bestProposal.toString());
+		sb.append("\n");
+		sb.append(" calculated distance for PDP ");
+		sb.append(bestProposal.getDistanceCostProposal(bestProposal.getTimeCostProposal()));
+		sb.append("\n"); 
+		sb.append(" calculated time for PDP ");
+		sb.append(bestProposal.getTimeCostProposal());
 		sb.append("\n"); 
 		sb.append(" auction duration: ");
 		sb.append(auctionDuration);
