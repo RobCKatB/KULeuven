@@ -43,6 +43,12 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	private long travelledTime;
 	private int numberOfRecharges;
 	private int numberOfDirectMessages;
+	private int nrOfCancelMessages;
+	private int nrOfProposalMessages;
+	private int nrOfRefusalMessages;
+	private int nrOfFailureMessages;
+	private int nrOfInformDoneMessages;
+	private int nrOfInformResultMessages;
 	private DefaultPDPModel defaultpdpmodel;
 	private RoadModel roadModel;
     private List<Proposal> proposals = new ArrayList<Proposal>();
@@ -94,6 +100,12 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		travelledDistance = 0;
 		numberOfRecharges = 0;
 		numberOfDirectMessages = 0;
+		nrOfCancelMessages = 0;
+		nrOfProposalMessages=0;
+		nrOfRefusalMessages=0;
+		nrOfFailureMessages=0;
+		nrOfInformDoneMessages=0;
+		nrOfInformResultMessages=0;
 		travelledTime = 0L;
 	}
 
@@ -389,6 +401,7 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		// TruckAgent sends proposal message to initiator of the auction (dispatchAgent)
 		CNPProposalMessage cnpProposalMessage = new CNPProposalMessage(auction, ContractNetMessageType.PROPOSE, proposal, proposal.getProposer(), proposal.getAuction().getDispatchAgent(), timelapse.getTime());
 		sendDirectMessage(cnpProposalMessage, auction.getDispatchAgent());
+		nrOfProposalMessages++;
 		
 	}
 	
@@ -418,16 +431,19 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 	public void sendRefusal(Auction auction, String refusalReason, TimeLapse timeLapse){
 		CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, ContractNetMessageType.REFUSE, this, auction.getDispatchAgent(), refusalReason, timeLapse.getTime());
 		sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());	
+		nrOfRefusalMessages++;
 	}
 	
 	public void sendFailure(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
 		CNPFailureMessage cnpFailureMessage = new CNPFailureMessage(auction, type, this, auction.getDispatchAgent(), type.toString(), timeLapse.getTime());
 		sendDirectMessage(cnpFailureMessage, auction.getDispatchAgent());
+		nrOfFailureMessages++;
 	}
 
 	public void sendInformDone(Auction auction, ContractNetMessageType type, TimeLapse timeLapse){
 		CNPInformDoneMessage cnpInformDoneMessage = new CNPInformDoneMessage(auction, type, this, auction.getDispatchAgent(), timeLapse.getTime());
 		sendDirectMessage(cnpInformDoneMessage, auction.getDispatchAgent());	
+		nrOfInformDoneMessages++;
 	}
 
 	public void sendInformResult(Auction auction, ContractNetMessageType type, TimeLapse timeLapse, long pickupTime, long deliveryTime, long truckStartTime, long CFPTimeSent){
@@ -436,13 +452,15 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		long timeTruckToPickupToDelivery =deliveryTime - truckStartTime;
 		long timeCFPToDelivery=deliveryTime - CFPTimeSent;
 		CNPInformResultMessage cnpInformResultMessage = new CNPInformResultMessage(auction, type, this, auction.getDispatchAgent(), timeTruckToPickup, timePickupToDelivery, timeTruckToPickupToDelivery, timeCFPToDelivery, timeLapse.getTime());
-		sendDirectMessage(cnpInformResultMessage, auction.getDispatchAgent());	
+		sendDirectMessage(cnpInformResultMessage, auction.getDispatchAgent());
+		nrOfInformResultMessages++;
 //		System.out.println("INFORM RESULT sent: " +cnpInformResultMessage.toString());
 	}
 	
 	protected void sendCancelMessage(Auction auction, String cancelReason, TimeLapse timeLapse){
-		CNPCancelMessage cnpRefusalMessage = new CNPCancelMessage(auction, ContractNetMessageType.CANCEL, this, auction.getDispatchAgent(), cancelReason, timeLapse.getTime());
-		sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());	
+		CNPCancelMessage cnpCancelMessage = new CNPCancelMessage(auction, ContractNetMessageType.CANCEL, this, auction.getDispatchAgent(), cancelReason, timeLapse.getTime());
+		sendDirectMessage(cnpCancelMessage, auction.getDispatchAgent());
+		nrOfCancelMessages++;
 	}
 	
 	@Override
@@ -494,6 +512,53 @@ public abstract class TruckAgent extends Vehicle implements CommUser, MovingRoad
 		this.numberOfDirectMessages = numberOfDirectMessages;
 	}
 	
+	public int getNrOfCancelMessages() {
+		return nrOfCancelMessages;
+	}
+
+	public void setNrOfCancelMessages(int nrOfCancelMessages) {
+		this.nrOfCancelMessages = nrOfCancelMessages;
+	}
+
+	public int getNrOfProposalMessages() {
+		return nrOfProposalMessages;
+	}
+
+	public void setNrOfProposalMessages(int nrOfProposalMessages) {
+		this.nrOfProposalMessages = nrOfProposalMessages;
+	}
+
+	public int getNrOfRefusalMessages() {
+		return nrOfRefusalMessages;
+	}
+
+	public void setNrOfRefusalMessages(int nrOfRefusalMessages) {
+		this.nrOfRefusalMessages = nrOfRefusalMessages;
+	}
+
+	public int getNrOfFailureMessages() {
+		return nrOfFailureMessages;
+	}
+
+	public void setNrOfFailureMessages(int nrOfFailureMessages) {
+		this.nrOfFailureMessages = nrOfFailureMessages;
+	}
+
+	public int getNrOfInformDoneMessages() {
+		return nrOfInformDoneMessages;
+	}
+
+	public void setNrOfInformDoneMessages(int nrOfInformDoneMessages) {
+		this.nrOfInformDoneMessages = nrOfInformDoneMessages;
+	}
+
+	public int getNrOfInformResultMessages() {
+		return nrOfInformResultMessages;
+	}
+
+	public void setNrOfInformResultMessages(int nrOfInformResultMessages) {
+		this.nrOfInformResultMessages = nrOfInformResultMessages;
+	}
 
 	public long getTravelledTime() {
 		return travelledTime;

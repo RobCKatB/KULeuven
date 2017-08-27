@@ -80,11 +80,11 @@ import com.google.common.collect.ImmutableBiMap;
  */
 public final class main {
 
-  public static final Mode mode = Mode.BASIC;
+  public static final Mode mode = Mode.PARALLEL_AUCTIONS;
 
   private static final int NUM_DEPOTS = 2;
   private static final int NUM_TRUCKS = 10;
-  private static final int NUM_PARCELS = 30;
+  private static final int NUM_PARCELS = 300;
   private static final int NUM_CHARINGSTATIONS = 2;
 
   // time in ms
@@ -230,6 +230,8 @@ public final class main {
         	getDistanceResults(truckAgents);
         	getTimeResults(truckAgents);
         	getNumberOfRecharges(truckAgents);
+        	getMessagesTruckAgents(truckAgents);
+        	getMessagesDispatchAgents(dispatchAgents);
         	getNumberOfDirectMessagesTruckAgents(truckAgents);
         	getNumberOfDirectMessagesDispatchAgents(dispatchAgents);
         	getNumberOfBroadcastMessagesDispatchAgents(dispatchAgents);
@@ -335,6 +337,43 @@ public final class main {
   /*
    * generate statistics
    */
+  
+  public static void getMessagesTruckAgents(ArrayList<TruckAgent> truckAgents){
+	  int nrOfCancelMessages = 0;
+	  int nrOfProposalMessages = 0;
+	  int nrOfRefusalMessages = 0;
+	  int nrOfFailureMessages = 0;
+	  int nrOfInformDoneMessages = 0;
+	  int nrOfInformResultMessages = 0;
+	  for(TruckAgent truckAgent: truckAgents){
+		  nrOfCancelMessages+=truckAgent.getNrOfCancelMessages();
+		  nrOfProposalMessages+=truckAgent.getNrOfProposalMessages();
+		  nrOfRefusalMessages+=truckAgent.getNrOfRefusalMessages();
+		  nrOfFailureMessages+=truckAgent.getNrOfFailureMessages();
+		  nrOfInformDoneMessages+=truckAgent.getNrOfInformDoneMessages();
+		  nrOfInformResultMessages+=truckAgent.getNrOfInformResultMessages();
+	  }
+	  System.out.println("CANCEL messages "+nrOfCancelMessages);
+	  System.out.println("PROPOSAL messages "+nrOfProposalMessages);
+	  System.out.println("REFUSAL messages "+nrOfRefusalMessages);
+	  System.out.println("FAILURE messages "+nrOfFailureMessages);
+	  System.out.println("INFORM_DONE messages "+nrOfInformDoneMessages);
+	  System.out.println("INFORM_RESULT messages "+nrOfInformResultMessages);
+  }
+  
+  public static void getMessagesDispatchAgents(ArrayList<DispatchAgent> dispatchAgents){
+	  int nrOfCFPMessages = 0;
+	  int nrOfAcceptProposalMessages = 0;
+	  int nrOfRejectProposalMessages = 0;
+	  for(DispatchAgent dispatchAgent: dispatchAgents){
+		  nrOfCFPMessages+=dispatchAgent.getNrOfCFPMessages();
+		  nrOfAcceptProposalMessages+=dispatchAgent.getNrOfAcceptMessages();
+		  nrOfRejectProposalMessages+=dispatchAgent.getNrOfRejectProposalMessages();
+	  }
+	  System.out.println("CALL_FOR_PROPOSAL messages "+nrOfCFPMessages);
+	  System.out.println("ACCEPT_PROPOSAL messages "+nrOfAcceptProposalMessages);
+	  System.out.println("REJECT_PROPOSAL messages "+nrOfRejectProposalMessages);
+  }
   
   public static int getNumberOfDirectMessagesTruckAgents(ArrayList<TruckAgent> truckAgents){
 	  int totalNumberOfDirectMessages = 0;

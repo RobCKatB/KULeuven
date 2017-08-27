@@ -39,6 +39,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 	private long currentTime;
 	private int numberOfBroadCastMessages;
 	private int numberOfDirectMessages;
+	private int nrOfCFPMessages;
+	private int nrOfAcceptProposalMessages;
+	private int nrOfRejectProposalMessages;
 	// Collections for the four stages a parcel goes through.
 	private HashSet<Parcel> parcelsInitial = new HashSet<Parcel>();			// Parcels just added to this DispatchAgent.
 	private HashSet<Parcel> parcelsAuctionRunning = new HashSet<Parcel>();	// A running auction.
@@ -68,6 +71,9 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		range = Double.MAX_VALUE;
 		numberOfBroadCastMessages = 0;
 		numberOfDirectMessages = 0;
+		nrOfCFPMessages = 0;
+		nrOfAcceptProposalMessages = 0;
+		nrOfRejectProposalMessages = 0;
 	}
 
 	// thicklistener methods implemented
@@ -321,22 +327,26 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		ContractNetMessageType type = ContractNetMessageType.CALL_FOR_PROPOSAL;
 		CNPMessage cnpMessage = new CNPMessage(auction, type, this, currentTime);
 		sendBroadcastMessage(cnpMessage);
+		nrOfCFPMessages++;
 	}
 
 	public void sendAcceptProposal(Auction auction, Proposal bestProp, ContractNetMessageType type, TimeLapse time){
 		CNPAcceptMessage cnpAcceptMessage = new CNPAcceptMessage(auction, type, this, bestProp.getProposer(), bestProp, time.getTime());
 		sendDirectMessage(cnpAcceptMessage, bestProp.getProposer());
+		nrOfAcceptProposalMessages++;
 	}
 	
+	/* not used
 	public void sendRefusal(Auction auction, ContractNetMessageType type,TimeLapse time){
 		CNPRefusalMessage cnpRefusalMessage = new CNPRefusalMessage(auction, type, this, auction.getDispatchAgent(), type.toString(), time.getTime());
 		sendDirectMessage(cnpRefusalMessage, auction.getDispatchAgent());	
 	}
-	
+	*/
 	 
 	public void sendRejectProposal(Auction auction, ContractNetMessageType s, CommUser loser, String rejectionReasen, TimeLapse time){
 		CNPRejectMessage cnpRejectMessage = new CNPRejectMessage(auction, s, this, loser, rejectionReasen, time.getTime());
 		sendDirectMessage(cnpRejectMessage, loser);
+		nrOfRejectProposalMessages++;
 	}
 
 
@@ -424,5 +434,27 @@ public class DispatchAgent extends Depot implements CommUser, TickListener {
 		this.numberOfDirectMessages = numberOfDirectMessages;
 	}
 
+	public int getNrOfCFPMessages() {
+		return nrOfCFPMessages;
+	}
 
+	public void setNrOfCFPMessages(int nrOfCFPMessages) {
+		this.nrOfCFPMessages = nrOfCFPMessages;
+	}
+
+	public int getNrOfAcceptMessages() {
+		return nrOfAcceptProposalMessages;
+	}
+
+	public void setNrOfAcceptMessages(int nrOfAcceptMessages) {
+		this.nrOfAcceptProposalMessages = nrOfAcceptMessages;
+	}
+
+	public int getNrOfRejectProposalMessages() {
+		return nrOfRejectProposalMessages;
+	}
+
+	public void setNrOfRejectProposalMessages(int nrOfRejectProposalMessages) {
+		this.nrOfRejectProposalMessages = nrOfRejectProposalMessages;
+	}
 }
